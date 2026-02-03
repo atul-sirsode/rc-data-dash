@@ -5,6 +5,9 @@ export interface LoginOTPResponse {
   status: boolean;
   message: string;
   statuscode: number;
+  data?: {
+    mobile?: string;
+  };
 }
 
 export interface VerifyOTPResponse {
@@ -43,6 +46,9 @@ export async function requestLoginOTP(username: string, password: string): Promi
         status: true,
         message: 'OTP sent successfully (mock)',
         statuscode: 200,
+        data: {
+          mobile: 'XXXXXX' + Math.floor(1000 + Math.random() * 9000),
+        },
       };
     }
     throw error;
