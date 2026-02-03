@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Truck, FileSpreadsheet, RefreshCw, Info, AlertTriangle } from 'lucide-react';
+import { Truck, FileSpreadsheet, RefreshCw, Info, AlertTriangle, LogOut } from 'lucide-react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataTable } from '@/components/DataTable';
 import { StatsCards } from '@/components/StatsCards';
@@ -10,8 +10,10 @@ import { RCTableRow } from '@/types/rc-verification';
 import { getMockRCData, transformRCDataToTableRow, createPendingRow } from '@/lib/rc-api';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
+  const { logout, username } = useAuth();
   const [data, setData] = useState<RCTableRow[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedCount, setProcessedCount] = useState(0);
@@ -108,17 +110,35 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {data.length > 0 && (
+            <div className="flex items-center gap-3">
+              {username && (
+                <span className="text-sm text-primary-foreground/80">
+                  Welcome, {username}
+                </span>
+              )}
+              
+              {data.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                  className="gap-2 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  New Upload
+                </Button>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleReset}
+                onClick={logout}
                 className="gap-2 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20"
               >
-                <RefreshCw className="w-4 h-4" />
-                New Upload
+                <LogOut className="w-4 h-4" />
+                Logout
               </Button>
-            )}
+            </div>
           </motion.div>
         </div>
       </header>
