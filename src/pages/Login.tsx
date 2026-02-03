@@ -68,12 +68,12 @@ export default function Login() {
     try {
       const response = await verifyLoginOTP(username, password, otp);
 
-      if (response.status) {
+      if (response.status && response.access_token) {
         toast({
           title: 'Success',
           description: 'Login successful!',
         });
-        login(username);
+        login(username, response.access_token, response.expires_in || 86400);
         navigate('/');
       } else {
         toast({
