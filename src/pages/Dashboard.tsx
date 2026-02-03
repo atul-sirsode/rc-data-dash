@@ -5,6 +5,7 @@ import { FileUpload } from '@/components/FileUpload';
 import { DataTable } from '@/components/DataTable';
 import { StatsCards } from '@/components/StatsCards';
 import { ProcessingStatus } from '@/components/ProcessingStatus';
+import { SessionTimer } from '@/components/SessionTimer';
 import { ParseResult } from '@/lib/file-parser';
 import { RCTableRow } from '@/types/rc-verification';
 import { getMockRCData, transformRCDataToTableRow, createPendingRow } from '@/lib/rc-api';
@@ -116,6 +117,8 @@ const Dashboard = () => {
                   Welcome, {username}
                 </span>
               )}
+
+              <SessionTimer />
               
               {data.length > 0 && (
                 <Button

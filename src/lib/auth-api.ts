@@ -11,10 +11,9 @@ export interface VerifyOTPResponse {
   status: boolean;
   message: string;
   statuscode: number;
-  data?: {
-    token?: string;
-    [key: string]: any;
-  };
+  access_token?: string;
+  token_type?: string;
+  expires_in?: number;
 }
 
 export async function requestLoginOTP(username: string, password: string): Promise<LoginOTPResponse> {
@@ -84,7 +83,9 @@ export async function verifyLoginOTP(
           status: true,
           message: 'Login successful (mock)',
           statuscode: 200,
-          data: { token: 'mock-token-' + Date.now() },
+          access_token: 'mock-token-' + Date.now(),
+          token_type: 'bearer',
+          expires_in: 86400, // 24 hours
         };
       }
       return {

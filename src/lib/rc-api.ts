@@ -2,6 +2,10 @@ import { RCApiResponse, RCData, RCTableRow } from '@/types/rc-verification';
 
 const API_URL = 'https://api.verifya2z.com/api/v1/api/rc_verify';
 
+export function getAuthToken(): string | null {
+  return sessionStorage.getItem('accessToken');
+}
+
 export async function verifyRC(rcNumber: string): Promise<RCApiResponse> {
   // NOTE: This API call needs to be made from a backend server due to CORS restrictions
   // For production, you should:
@@ -9,8 +13,7 @@ export async function verifyRC(rcNumber: string): Promise<RCApiResponse> {
   // 2. Add your API authentication headers
   // 3. Call the API from the server and return results to the client
   
-  // For now, we'll simulate the API call with a placeholder
-  // Replace this with your actual backend implementation
+  const token = getAuthToken();
   
   const formData = new URLSearchParams();
   formData.append('id_number', rcNumber);
@@ -20,8 +23,7 @@ export async function verifyRC(rcNumber: string): Promise<RCApiResponse> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        // Add your API key header here when using backend proxy
-        // 'Authorization': 'Bearer YOUR_API_KEY',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
       },
       body: formData,
     });
