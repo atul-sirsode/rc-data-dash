@@ -16,6 +16,7 @@ export default function Login() {
   const [step, setStep] = useState<LoginStep>('credentials');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [maskedMobile, setMaskedMobile] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -40,9 +41,11 @@ export default function Login() {
       const response = await requestLoginOTP(username, password);
 
       if (response.status) {
+        const mobile = response.data?.mobile || 'XXXXXX****';
+        setMaskedMobile(mobile);
         toast({
           title: 'OTP Sent',
-          description: 'Please check your mobile for the OTP',
+          description: `Please check your mobile ${mobile} for the OTP`,
         });
         setStep('otp');
       } else {
@@ -97,9 +100,11 @@ export default function Login() {
     try {
       const response = await requestLoginOTP(username, password);
       if (response.status) {
+        const mobile = response.data?.mobile || maskedMobile;
+        setMaskedMobile(mobile);
         toast({
           title: 'OTP Resent',
-          description: 'A new OTP has been sent to your mobile',
+          description: `A new OTP has been sent to ${mobile}`,
         });
       } else {
         toast({
@@ -181,6 +186,7 @@ export default function Login() {
           </Card>
         ) : (
           <OTPVerification
+            maskedPhone={maskedMobile}
             onVerify={handleVerifyOTP}
             onResend={handleResendOTP}
             isVerifying={isVerifying}
