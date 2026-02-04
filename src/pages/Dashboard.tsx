@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Truck, FileSpreadsheet, RefreshCw, Info, AlertTriangle, LogOut } from 'lucide-react';
+import { Truck, FileSpreadsheet, RefreshCw, Info, AlertTriangle, LogOut, Search } from 'lucide-react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataTable } from '@/components/DataTable';
 import { StatsCards } from '@/components/StatsCards';
@@ -10,6 +10,7 @@ import { ParseResult } from '@/lib/file-parser';
 import { RCTableRow } from '@/types/rc-verification';
 import { getMockRCData, transformRCDataToTableRow, createPendingRow } from '@/lib/rc-api';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -20,6 +21,8 @@ const Dashboard = () => {
   const [processedCount, setProcessedCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
   const [showApiWarning, setShowApiWarning] = useState(true);
+  const [rcSearchInput, setRcSearchInput] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const handleFileProcessed = useCallback(async (result: ParseResult) => {
     if (!result.success || result.rcNumbers.length === 0) return;
@@ -85,7 +88,58 @@ const Dashboard = () => {
     setProcessedCount(0);
     setFailedCount(0);
     setIsProcessing(false);
+    setRcSearchInput('');
   };
+
+  const handleSingleRCSearch = useCallback(async () => {
+    const trimmedRC = rcSearchInput.trim().toUpperCase();
+    if (!trimmedRC) return;
+
+    setIsSearching(true);
+    const rowId = `search-${Date.now()}`;
+    const pendingRow = createPendingRow(trimmedRC, rowId);
+    
+    // Add to existing data or create new
+    setData(prev => {
+      const existingIndex = prev.findIndex(r => r.rc_number.toUpperCase() === trimmedRC);
+      if (existingIndex >= 0) {
+        // Update existing row to processing
+        return prev.map((r, i) => i === existingIndex ? { ...r, status: 'processing' as const } : r);
+      }
+      return [{ ...pendingRow, status: 'processing' as const }, ...prev];
+    });
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
+      const response = getMockRCData(trimmedRC);
+      
+      if (response.status && response.data) {
+        const transformedRow = transformRCDataToTableRow(response.data, rowId);
+        setData(prev => {
+          const existingIndex = prev.findIndex(r => r.rc_number.toUpperCase() === trimmedRC);
+          if (existingIndex >= 0) {
+            return prev.map((r, i) => i === existingIndex ? transformedRow : r);
+          }
+          return prev.map(r => r.id === rowId ? transformedRow : r);
+        });
+      } else {
+        setData(prev => prev.map(r => 
+          r.rc_number.toUpperCase() === trimmedRC ? { ...r, status: 'error' as const, errorMessage: response.message } : r
+        ));
+      }
+    } catch (error) {
+      setData(prev => prev.map(r => 
+        r.rc_number.toUpperCase() === trimmedRC ? { 
+          ...r, 
+          status: 'error' as const, 
+          errorMessage: error instanceof Error ? error.message : 'Unknown error' 
+        } : r
+      ));
+    }
+
+    setIsSearching(false);
+    setRcSearchInput('');
+  }, [rcSearchInput]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -173,15 +227,58 @@ const Dashboard = () => {
           {/* Stats Cards */}
           <StatsCards data={data} />
 
+          {/* RC Number Search */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="max-w-2xl mx-auto"
+          >
+            <div className="p-6 bg-card rounded-xl border border-border shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <Search className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">Search Single RC Number</h3>
+              </div>
+              <div className="flex gap-3">
+                <Input
+                  type="text"
+                  placeholder="Enter RC Number (e.g., MH12AB1234)"
+                  value={rcSearchInput}
+                  onChange={(e) => setRcSearchInput(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSingleRCSearch()}
+                  className="flex-1"
+                  disabled={isSearching || isProcessing}
+                />
+                <Button
+                  onClick={handleSingleRCSearch}
+                  disabled={!rcSearchInput.trim() || isSearching || isProcessing}
+                  className="gap-2"
+                >
+                  {isSearching ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                  Search
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+
           {/* File Upload */}
           {data.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.15 }}
               className="max-w-2xl mx-auto"
             >
               <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
+                  <div className="h-px w-16 bg-border" />
+                  <span className="text-sm">OR</span>
+                  <div className="h-px w-16 bg-border" />
+                </div>
                 <h2 className="text-2xl font-bold text-foreground mb-2">
                   Upload Your Vehicle Data
                 </h2>
