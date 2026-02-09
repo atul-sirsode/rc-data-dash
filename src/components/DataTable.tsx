@@ -414,6 +414,7 @@ export function DataTable({ data }: DataTableProps) {
                     className="capitalize"
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onSelect={(e) => e.preventDefault()}
                   >
                     {TABLE_COLUMNS.find(c => c.key === column.id)?.label || column.id}
                   </DropdownMenuCheckboxItem>
