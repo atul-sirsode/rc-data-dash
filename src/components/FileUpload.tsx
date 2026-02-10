@@ -5,7 +5,7 @@ import { parseFile, ParseResult } from '@/lib/file-parser';
 import { cn } from '@/lib/utils';
 
 interface FileUploadProps {
-  onFileProcessed: (result: ParseResult) => void;
+  onFileProcessed: (result: ParseResult, file: File) => void;
   isProcessing?: boolean;
 }
 
@@ -53,7 +53,7 @@ export function FileUpload({ onFileProcessed, isProcessing }: FileUploadProps) {
     }
 
     setUploadedFile(result);
-    onFileProcessed(result);
+    onFileProcessed(result, file);
   };
 
   const clearFile = () => {
