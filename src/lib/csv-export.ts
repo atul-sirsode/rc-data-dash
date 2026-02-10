@@ -4,10 +4,10 @@ export function exportToCSV(
   data: RCTableRow[],
   fileName: string = 'rc-verification-export',
   visibleColumns?: string[]
-): void {
+): Blob | null {
   if (data.length === 0) {
     console.warn('No data to export');
-    return;
+    return null;
   }
 
   const columnsToExport = visibleColumns
@@ -62,13 +62,15 @@ export function exportToCSV(
   document.body.removeChild(link);
   
   URL.revokeObjectURL(url);
+  
+  return blob;
 }
 
 export function exportSelectedToCSV(
   data: RCTableRow[],
   selectedIds: string[],
   visibleColumns?: string[]
-): void {
+): Blob | null {
   const selectedData = data.filter(row => selectedIds.includes(row.id));
-  exportToCSV(selectedData, 'rc-verification-selected-export', visibleColumns);
+  return exportToCSV(selectedData, 'rc-verification-selected-export', visibleColumns);
 }

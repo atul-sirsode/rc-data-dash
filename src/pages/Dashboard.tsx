@@ -6,9 +6,11 @@ import { DataTable } from '@/components/DataTable';
 import { StatsCards } from '@/components/StatsCards';
 import { ProcessingStatus } from '@/components/ProcessingStatus';
 import { SessionTimer } from '@/components/SessionTimer';
+import { FileHistory } from '@/components/FileHistory';
 import { ParseResult } from '@/lib/file-parser';
 import { RCTableRow } from '@/types/rc-verification';
 import { getMockRCData, transformRCDataToTableRow, createPendingRow } from '@/lib/rc-api';
+import { saveFileToHistory } from '@/lib/file-history';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,9 +25,25 @@ const Dashboard = () => {
   const [showApiWarning, setShowApiWarning] = useState(true);
   const [rcSearchInput, setRcSearchInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [historyRefresh, setHistoryRefresh] = useState(0);
+  const [lastUploadedFile, setLastUploadedFile] = useState<File | null>(null);
 
-  const handleFileProcessed = useCallback(async (result: ParseResult) => {
+  const handleFileProcessed = useCallback(async (result: ParseResult, file: File) => {
     if (!result.success || result.rcNumbers.length === 0) return;
+
+    // Save uploaded file to history
+    setLastUploadedFile(file);
+    try {
+      await saveFileToHistory(file, {
+        fileName: file.name,
+        fileType: 'upload',
+        recordCount: result.rcNumbers.length,
+        mimeType: file.type || 'application/octet-stream',
+      });
+      setHistoryRefresh(prev => prev + 1);
+    } catch (e) {
+      console.error('Failed to save upload to history', e);
+    }
 
     // Create pending rows for all RC numbers
     const pendingRows = result.rcNumbers.map((rc, index) =>
@@ -89,7 +107,22 @@ const Dashboard = () => {
     setFailedCount(0);
     setIsProcessing(false);
     setRcSearchInput('');
+    setLastUploadedFile(null);
   };
+
+  const handleExport = useCallback(async (fileName: string, recordCount: number, blob: Blob) => {
+    try {
+      await saveFileToHistory(blob, {
+        fileName,
+        fileType: 'export',
+        recordCount,
+        mimeType: 'text/csv',
+      });
+      setHistoryRefresh(prev => prev + 1);
+    } catch (e) {
+      console.error('Failed to save export to history', e);
+    }
+  }, []);
 
   const handleSingleRCSearch = useCallback(async () => {
     const trimmedRC = rcSearchInput.trim().toUpperCase();
@@ -327,9 +360,12 @@ const Dashboard = () => {
                   Verification Results
                 </h2>
               </div>
-              <DataTable data={data} />
+              <DataTable data={data} onExport={handleExport} />
             </motion.div>
           )}
+
+          {/* File History */}
+          <FileHistory refreshTrigger={historyRefresh} />
         </div>
       </main>
 

@@ -73,6 +73,7 @@ import { cn } from '@/lib/utils';
 
 interface DataTableProps {
   data: RCTableRow[];
+  onExport?: (fileName: string, recordCount: number, blob: Blob) => void;
 }
 
 // Sortable header cell component
@@ -120,7 +121,7 @@ function StatusBadge({ status }: { status: RCTableRow['status'] }) {
   );
 }
 
-export function DataTable({ data }: DataTableProps) {
+export function DataTable({ data, onExport }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -317,13 +318,17 @@ export function DataTable({ data }: DataTableProps) {
     .map(([key]) => key);
 
   const handleExportAll = () => {
-    exportToCSV(data, 'rc-verification-all', visibleColumnKeys.length > 0 ? visibleColumnKeys : undefined);
+    const fileName = 'rc-verification-all';
+    const blob = exportToCSV(data, fileName, visibleColumnKeys.length > 0 ? visibleColumnKeys : undefined);
+    if (blob && onExport) onExport(`${fileName}-${new Date().toISOString().split('T')[0]}.csv`, data.length, blob);
   };
 
   const handleExportSelected = () => {
     if (selectedRows.length === 0) return;
     const selectedIds = selectedRows.map(row => row.original.id);
-    exportSelectedToCSV(data, selectedIds, visibleColumnKeys.length > 0 ? visibleColumnKeys : undefined);
+    const fileName = 'rc-verification-selected-export';
+    const blob = exportSelectedToCSV(data, selectedIds, visibleColumnKeys.length > 0 ? visibleColumnKeys : undefined);
+    if (blob && onExport) onExport(`${fileName}-${new Date().toISOString().split('T')[0]}.csv`, selectedIds.length, blob);
   };
 
   if (data.length === 0) {
