@@ -17,7 +17,6 @@ export default function UserMaster() {
   const menuItems = getAllMenuItems();
 
   const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
 
   const save = (updated: AdminSettings) => {
     setSettings(updated);
@@ -37,7 +36,6 @@ export default function UserMaster() {
         ...settings.users,
         {
           username: newUsername.trim(),
-          password: newPassword.trim() || undefined,
           bypassOTP: false,
           allowedMenus: ['rc-verification'],
           isAdmin: false,
@@ -46,7 +44,6 @@ export default function UserMaster() {
     };
     save(updated);
     setNewUsername('');
-    setNewPassword('');
   };
 
   const removeUser = (username: string) => {
@@ -89,7 +86,7 @@ export default function UserMaster() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Add New User</CardTitle>
-              <CardDescription>Create a user with optional password for OTP bypass</CardDescription>
+              <CardDescription>Enter a username to manage their access and menu permissions. No password required.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-3 items-end">
@@ -99,16 +96,6 @@ export default function UserMaster() {
                     value={newUsername}
                     onChange={e => setNewUsername(e.target.value)}
                     placeholder="Enter username"
-                    onKeyDown={e => e.key === 'Enter' && addUser()}
-                  />
-                </div>
-                <div className="flex-1 space-y-1.5">
-                  <Label className="text-foreground">Password (for bypass)</Label>
-                  <Input
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    placeholder="Enter password"
-                    type="password"
                     onKeyDown={e => e.key === 'Enter' && addUser()}
                   />
                 </div>
