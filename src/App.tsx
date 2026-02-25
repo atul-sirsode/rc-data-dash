@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import FastTag from "./pages/FastTag";
 import Settings from "./pages/Settings";
+import UserMaster from "./pages/UserMaster";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/fast-tag" element={<ProtectedRoute><FastTag /></ProtectedRoute>} />
+      <Route path="/user-master" element={<ProtectedRoute><UserMaster /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="*" element={<NotFound />} />
