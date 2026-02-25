@@ -105,28 +105,41 @@ export default function FastTag() {
     description: '',
   });
 
-  // Fetch states
+  // Fetch states only when post-submit view is shown
   useEffect(() => {
-    fetch('https://api.atulsirsode.cloud/api/states-cities/get-states')
+    if (!submitted) return;
+    fetch('https://api.atulsirsode.cloud/api/states-cities/get-states', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    })
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setStates(data);
-        } else if (data?.data && Array.isArray(data.data)) {
-          setStates(data.data);
+        console.log('States API response:', data);
+        const statesList = data?.data ?? data?.states ?? data;
+        if (Array.isArray(statesList)) {
+          setStates(statesList.map((s: any) => ({
+            name: s.name || s.state || s,
+            iso_code: s.iso_code || s.isoCode || s.iso2 || s.code || '',
+          })));
         }
       })
-      .catch(() => toast({ title: 'Failed to load states', variant: 'destructive' }));
-  }, []);
+      .catch(err => {
+        console.error('States fetch error:', err);
+        toast({ title: 'Failed to load states', variant: 'destructive' });
+      });
+  }, [submitted]);
 
   // Fetch source cities
   useEffect(() => {
     if (!sourceState) { setSourceCities([]); return; }
-    fetch(`https://api.atulsirsode.cloud/api/states-cities/get-city-by-state?iso_code=${sourceState}`)
+    fetch(`https://api.atulsirsode.cloud/api/states-cities/get-city-by-state?iso_code=${sourceState}`, {
+      headers: { 'Accept': 'application/json' },
+    })
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) setSourceCities(data.map((c: any) => c.name || c));
-        else if (data?.data) setSourceCities(data.data.map((c: any) => c.name || c));
+        console.log('Source cities response:', data);
+        const cities = data?.data ?? data?.cities ?? data;
+        if (Array.isArray(cities)) setSourceCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
       })
       .catch(() => setSourceCities([]));
   }, [sourceState]);
@@ -134,11 +147,14 @@ export default function FastTag() {
   // Fetch dest cities
   useEffect(() => {
     if (!destState) { setDestCities([]); return; }
-    fetch(`https://api.atulsirsode.cloud/api/states-cities/get-city-by-state?iso_code=${destState}`)
+    fetch(`https://api.atulsirsode.cloud/api/states-cities/get-city-by-state?iso_code=${destState}`, {
+      headers: { 'Accept': 'application/json' },
+    })
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) setDestCities(data.map((c: any) => c.name || c));
-        else if (data?.data) setDestCities(data.data.map((c: any) => c.name || c));
+        console.log('Dest cities response:', data);
+        const cities = data?.data ?? data?.cities ?? data;
+        if (Array.isArray(cities)) setDestCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
       })
       .catch(() => setDestCities([]));
   }, [destState]);
@@ -631,6 +647,15 @@ export default function FastTag() {
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+
+            {/* Generate PDF Button */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+              <div className="flex justify-center">
+                <Button size="lg" className="w-full sm:w-auto px-12 py-6 text-base bg-muted-foreground hover:bg-muted-foreground/90 text-background rounded-xl">
+                  Generate PDF and Save Changes
+                </Button>
+              </div>
             </motion.div>
           </div>
         )}
