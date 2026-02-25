@@ -126,7 +126,7 @@ const Dashboard = () => {
 
   return (
     <AppLayout showNewUpload={data.length > 0} onNewUpload={handleReset}>
-      <div className="space-y-6">
+      <div className="space-y-6 w-full min-w-0">
         {showApiWarning && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Alert className="border-warning/50 bg-warning/10">
