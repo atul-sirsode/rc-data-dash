@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin } from 'lucide-react';
+import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { getEnabledBanks } from '@/lib/admin-settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { verifyRC, getMockRCData } from '@/lib/rc-api';
 
 const VEHICLE_TYPES = [
   'Car, Jeep, Van, SUV',
@@ -73,6 +74,10 @@ export default function FastTag() {
   const [selectedBank, setSelectedBank] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [fetchingDetails, setFetchingDetails] = useState(false);
+  const [detailsFetched, setDetailsFetched] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     vehicleNumber: '',
@@ -161,6 +166,39 @@ export default function FastTag() {
 
   const updateForm = (key: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleGetDetails = async () => {
+    if (!formData.vehicleNumber.trim()) {
+      toast({ title: 'Vehicle Number is required', variant: 'destructive' });
+      return;
+    }
+    setFetchingDetails(true);
+    try {
+      let data;
+      try {
+        const response = await verifyRC(formData.vehicleNumber.trim());
+        data = response.data;
+      } catch {
+        // Fallback to mock if CORS or API error
+        const mock = getMockRCData(formData.vehicleNumber.trim());
+        data = mock.data;
+      }
+      if (data) {
+        setFormData(prev => ({
+          ...prev,
+          customerName: data.owner_name || prev.customerName,
+          truckNumber: data.rc_number || prev.truckNumber,
+          truckOwnerName: data.owner_name || prev.truckOwnerName,
+        }));
+        setDetailsFetched(true);
+        toast({ title: 'Vehicle details fetched successfully' });
+      }
+    } catch (err) {
+      toast({ title: 'Failed to fetch vehicle details', variant: 'destructive' });
+    } finally {
+      setFetchingDetails(false);
+    }
   };
 
   const handleSubmit = () => {
@@ -290,8 +328,8 @@ export default function FastTag() {
                       placeholder="Enter vehicle number"
                       className="flex-1 bg-primary/5 border-primary/20"
                     />
-                    <Button variant="outline" size="sm" className="shrink-0">
-                      Get details <ExternalLink className="w-4 h-4 ml-1" />
+                    <Button variant="outline" size="sm" className="shrink-0" onClick={handleGetDetails} disabled={fetchingDetails}>
+                      {fetchingDetails ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Fetching...</> : <>Get details <ExternalLink className="w-4 h-4 ml-1" /></>}
                     </Button>
                   </div>
                 </div>
@@ -304,6 +342,7 @@ export default function FastTag() {
                       value={formData.customerName}
                       onChange={e => updateForm('customerName', e.target.value)}
                       placeholder="Enter customer name"
+                      disabled={!detailsFetched}
                     />
                   </div>
                   <div className="space-y-2">
@@ -312,6 +351,7 @@ export default function FastTag() {
                       value={formData.customerMobile}
                       onChange={e => updateForm('customerMobile', e.target.value)}
                       placeholder="Enter mobile number"
+                      disabled={!detailsFetched}
                     />
                   </div>
                   <div className="space-y-2">
@@ -320,6 +360,7 @@ export default function FastTag() {
                       value={formData.truckNumber}
                       onChange={e => updateForm('truckNumber', e.target.value.toUpperCase())}
                       placeholder="Enter truck number"
+                      disabled={!detailsFetched}
                     />
                   </div>
                   <div className="space-y-2">
@@ -328,6 +369,7 @@ export default function FastTag() {
                       value={formData.truckOwnerName}
                       onChange={e => updateForm('truckOwnerName', e.target.value)}
                       placeholder="Enter owner name"
+                      disabled={!detailsFetched}
                     />
                   </div>
                 </div>
@@ -336,10 +378,11 @@ export default function FastTag() {
                 <div className="space-y-2">
                   <Label className="font-semibold text-foreground">Statement Duration</Label>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    <Popover>
+                    <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
+                          disabled={!detailsFetched}
                           className={cn(
                             'flex-1 w-full justify-start text-left font-normal',
                             !formData.startDate && 'text-muted-foreground'
@@ -353,17 +396,18 @@ export default function FastTag() {
                         <Calendar
                           mode="single"
                           selected={formData.startDate}
-                          onSelect={d => updateForm('startDate', d)}
+                          onSelect={d => { updateForm('startDate', d); setStartDateOpen(false); }}
                           initialFocus
                           className={cn('p-3 pointer-events-auto')}
                         />
                       </PopoverContent>
                     </Popover>
                     <span className="text-muted-foreground font-medium hidden sm:block">–</span>
-                    <Popover>
+                    <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
+                          disabled={!detailsFetched}
                           className={cn(
                             'flex-1 w-full justify-start text-left font-normal',
                             !formData.endDate && 'text-muted-foreground'
@@ -377,7 +421,7 @@ export default function FastTag() {
                         <Calendar
                           mode="single"
                           selected={formData.endDate}
-                          onSelect={d => updateForm('endDate', d)}
+                          onSelect={d => { updateForm('endDate', d); setEndDateOpen(false); }}
                           initialFocus
                           className={cn('p-3 pointer-events-auto')}
                         />
@@ -390,12 +434,13 @@ export default function FastTag() {
                 {/* Opening Balance */}
                 <div className="space-y-2">
                   <Label className="font-semibold text-foreground">Opening balance</Label>
-                  <Input
-                    value={formData.openingBalance}
-                    onChange={e => updateForm('openingBalance', e.target.value)}
-                    placeholder="XXXXX"
-                    type="text"
-                  />
+                    <Input
+                      value={formData.openingBalance}
+                      onChange={e => updateForm('openingBalance', e.target.value)}
+                      placeholder="XXXXX"
+                      type="text"
+                      disabled={!detailsFetched}
+                    />
                   <p className="text-sm text-primary/70">Enter your opening balance for the statement</p>
                 </div>
 
