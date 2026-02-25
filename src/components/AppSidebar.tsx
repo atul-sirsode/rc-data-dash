@@ -43,7 +43,7 @@ export function AppSidebar() {
         </div>
         {!collapsed && (
           <span className="text-base font-bold tracking-tight text-sidebar-foreground truncate">
-            Verify Dashboard
+            Transcologicis Dashboard
           </span>
         )}
       </div>
