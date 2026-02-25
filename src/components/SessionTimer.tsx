@@ -40,11 +40,11 @@ export function SessionTimer() {
   if (!sessionExpiresAt) return null;
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-foreground/10 rounded-lg border border-primary-foreground/20">
-      <Clock className="w-4 h-4 text-primary-foreground/70" />
-      <div className="text-xs text-primary-foreground/70">
-        <span className="block leading-none">Session</span>
-        <span className="font-mono font-semibold text-primary-foreground">{timeLeft}</span>
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[hsl(222,47%,15%)] border border-[hsl(222,47%,18%)]">
+      <Clock className="w-3.5 h-3.5 text-[hsl(215,20%,55%)]" />
+      <div className="text-xs text-[hsl(215,20%,65%)]">
+        <span className="block leading-none text-[10px]">Session</span>
+        <span className="font-mono font-semibold text-white">{timeLeft}</span>
       </div>
     </div>
   );
