@@ -20,24 +20,24 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
     : 'U';
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full overflow-hidden">
       <AppSidebar />
 
-      <div className="flex-1 flex flex-col min-h-screen bg-[hsl(222,47%,7%)]">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-[hsl(222,47%,15%)] bg-[hsl(222,47%,9%)]">
-          <div className="flex items-center justify-between h-full px-6">
+        <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-border bg-card">
+          <div className="flex items-center justify-between h-full px-4 md:px-6">
             {/* Left: Welcome */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {username && (
-                <span className="text-sm text-[hsl(215,20%,65%)]">
-                  Welcome, <span className="font-semibold text-white">{username}</span>
+                <span className="text-sm text-muted-foreground truncate">
+                  Welcome, <span className="font-semibold text-foreground">{username}</span>
                 </span>
               )}
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
               <SessionTimer />
 
               {showNewUpload && onNewUpload && (
@@ -45,25 +45,25 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
                   variant="ghost"
                   size="sm"
                   onClick={onNewUpload}
-                  className="gap-2 text-[hsl(215,20%,65%)] hover:text-white hover:bg-[hsl(222,47%,15%)]"
+                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  New Upload
+                  <span className="hidden sm:inline">New Upload</span>
                 </Button>
               )}
 
-              <button className="p-2 rounded-md text-[hsl(215,20%,55%)] hover:text-white hover:bg-[hsl(222,47%,15%)] transition-colors">
+              <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                 <Bell className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-2 pl-3 border-l border-[hsl(222,47%,18%)]">
+              <div className="flex items-center gap-2 pl-2 md:pl-3 border-l border-border">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-[hsl(217,91%,60%)] text-white text-xs font-semibold">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 {username && (
-                  <span className="text-sm font-medium text-white hidden sm:inline">
+                  <span className="text-sm font-medium text-foreground hidden sm:inline">
                     {username}
                   </span>
                 )}
@@ -71,7 +71,7 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
                   variant="ghost"
                   size="sm"
                   onClick={logout}
-                  className="gap-1.5 text-[hsl(215,20%,65%)] hover:text-white hover:bg-[hsl(222,47%,15%)] ml-1"
+                  className="gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted ml-1"
                 >
                   <LogOut className="w-4 h-4" />
                   <span className="hidden sm:inline">Logout</span>
@@ -82,8 +82,10 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-6 overflow-auto">
-          {children}
+        <main className="flex-1 p-4 md:p-6 overflow-auto min-w-0">
+          <div className="w-full max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>

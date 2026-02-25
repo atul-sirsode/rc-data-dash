@@ -457,14 +457,14 @@ export function DataTable({ data, onExport }: DataTableProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border bg-card overflow-hidden w-full">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full table-auto">
               <thead>
                 {table.getHeaderGroups().map(headerGroup => (
                   <tr key={headerGroup.id} className="border-b border-border bg-muted/50">
