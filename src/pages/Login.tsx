@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { requestLoginOTP, verifyLoginOTP } from '@/lib/auth-api';
+import { getBypassUser } from '@/lib/admin-settings';
 import { OTPVerification } from '@/components/OTPVerification';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,17 @@ export default function Login() {
     }
 
     setIsLoading(true);
+
+    // Check for bypass users (skip OTP)
+    const bypassUser = getBypassUser(username);
+    if (bypassUser && bypassUser.password && bypassUser.password === password) {
+      toast({ title: 'Success', description: 'Login successful!' });
+      login(username, 'bypass-token-' + Date.now(), 86400);
+      navigate('/');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await requestLoginOTP(username, password);
 
