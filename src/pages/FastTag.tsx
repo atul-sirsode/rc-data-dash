@@ -19,21 +19,17 @@ import { toast } from '@/hooks/use-toast';
 import { verifyRC, getMockRCData } from '@/lib/rc-api';
 
 const VEHICLE_TYPES = [
-  'Car, Jeep, Van, SUV',
-  'Car, SUV towing 1-axle trailer',
-  'Car, SUV towing 2-axle trailer',
-  'Taxi',
-  'Pickup truck, Light Commercial Vehicles',
-  'Truck - 2-Axles',
-  'Truck - 3 Axles',
-  'Truck - 4 Axles',
-  'Truck - 5 Axles',
-  'Truck - 6 Axles',
-  'Truck - 7 Axles',
-  'Bus - 2-Axles',
-  'Bus - 3 Axles',
-  'Bus - 4 Axles',
-  'Bike',
+  { value: '2AxlesAuto', description: 'Car, Jeep, Van, SUV', icon: '🚗' },
+  { value: '2AxlesLCV', description: 'Light Commercial Vehicle (LCV)', icon: '🚐' },
+  { value: '2AxlesBus', description: 'Bus - 2 Axles', icon: '🚌' },
+  { value: '3AxlesBus', description: 'Bus - 3 Axles', icon: '🚌' },
+  { value: '2AxlesTruck', description: 'Truck - 2 Axles', icon: '🚛' },
+  { value: '3AxlesTruck', description: 'Truck - 3 Axles', icon: '🚛' },
+  { value: '4AxlesTruck', description: 'Truck - 4 Axles', icon: '🚛' },
+  { value: '5AxlesTruck', description: 'Truck - 5 Axles', icon: '🚛' },
+  { value: '6AxlesTruck', description: 'Truck - 6 Axles', icon: '🚛' },
+  { value: '7AxlesTruck', description: 'Truck - 7+ Axles', icon: '🚛' },
+  { value: '2AxlesMotorcycle', description: 'Motorcycle / Bike', icon: '🏍️' },
 ];
 
 interface FormData {
@@ -531,7 +527,12 @@ export default function FastTag() {
                         <SelectTrigger><SelectValue placeholder="Select a vehicle type" /></SelectTrigger>
                         <SelectContent>
                           {VEHICLE_TYPES.map(vt => (
-                            <SelectItem key={vt} value={vt}>{vt}</SelectItem>
+                            <SelectItem key={vt.value} value={vt.value}>
+                              <span className="flex items-center gap-2">
+                                <span className="text-lg leading-none">{vt.icon}</span>
+                                <span>{vt.description}</span>
+                              </span>
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
