@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2 } from 'lucide-react';
+import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2, Car, Bus, Bike, Caravan } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { getEnabledBanks } from '@/lib/admin-settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,18 +18,38 @@ import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { verifyRC, getMockRCData } from '@/lib/rc-api';
 
+const VEHICLE_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  car: Car,
+  truck: Truck,
+  bus: Bus,
+  bike: Bike,
+  lcv: Truck,
+  taxi: Car,
+  rv: Caravan,
+};
+
 const VEHICLE_TYPES = [
-  { value: '2AxlesAuto', description: 'Car, Jeep, Van, SUV', icon: '🚗' },
-  { value: '2AxlesLCV', description: 'Light Commercial Vehicle (LCV)', icon: '🚐' },
-  { value: '2AxlesBus', description: 'Bus - 2 Axles', icon: '🚌' },
-  { value: '3AxlesBus', description: 'Bus - 3 Axles', icon: '🚌' },
-  { value: '2AxlesTruck', description: 'Truck - 2 Axles', icon: '🚛' },
-  { value: '3AxlesTruck', description: 'Truck - 3 Axles', icon: '🚛' },
-  { value: '4AxlesTruck', description: 'Truck - 4 Axles', icon: '🚛' },
-  { value: '5AxlesTruck', description: 'Truck - 5 Axles', icon: '🚛' },
-  { value: '6AxlesTruck', description: 'Truck - 6 Axles', icon: '🚛' },
-  { value: '7AxlesTruck', description: 'Truck - 7+ Axles', icon: '🚛' },
-  { value: '2AxlesMotorcycle', description: 'Motorcycle / Bike', icon: '🏍️' },
+  // Car, Jeep, Van, SUV
+  { value: '2AxlesAuto', description: 'Car, Jeep, Van, SUV', iconKey: 'car' },
+  { value: '3AxlesAuto', description: 'Car, SUV towing 1-axle trailer', iconKey: 'car' },
+  { value: '4AxlesAuto', description: 'Car, SUV towing 2-axle trailer', iconKey: 'car' },
+  // Taxi
+  { value: '2AxlesTaxi', description: 'Taxi', iconKey: 'taxi' },
+  // Pickup Truck, LCV
+  { value: '2AxlesLCV', description: 'Pickup truck, Light Commercial Vehicles', iconKey: 'lcv' },
+  // Truck
+  { value: '2AxlesTruck', description: 'Truck - 2 Axles', iconKey: 'truck' },
+  { value: '3AxlesTruck', description: 'Truck - 3 Axles', iconKey: 'truck' },
+  { value: '4AxlesTruck', description: 'Truck - 4 Axles', iconKey: 'truck' },
+  { value: '5AxlesTruck', description: 'Truck - 5 Axles', iconKey: 'truck' },
+  { value: '6AxlesTruck', description: 'Truck - 6 Axles', iconKey: 'truck' },
+  { value: '7AxlesTruck', description: 'Truck - 7+ Axles', iconKey: 'truck' },
+  // Bus
+  { value: '2AxlesBus', description: 'Bus - 2 Axles', iconKey: 'bus' },
+  { value: '3AxlesBus', description: 'Bus - 3 Axles', iconKey: 'bus' },
+  { value: '4AxlesBus', description: 'Bus - 4 Axles', iconKey: 'bus' },
+  // Bike
+  { value: '2AxlesMotorcycle', description: 'Bike', iconKey: 'bike' },
 ];
 
 interface FormData {
@@ -526,14 +546,17 @@ export default function FastTag() {
                       <Select value={vehicleType} onValueChange={setVehicleType}>
                         <SelectTrigger><SelectValue placeholder="Select a vehicle type" /></SelectTrigger>
                         <SelectContent>
-                          {VEHICLE_TYPES.map(vt => (
-                            <SelectItem key={vt.value} value={vt.value}>
-                              <span className="flex items-center gap-2">
-                                <span className="text-lg leading-none">{vt.icon}</span>
-                                <span>{vt.description}</span>
-                              </span>
-                            </SelectItem>
-                          ))}
+                          {VEHICLE_TYPES.map(vt => {
+                            const IconComp = VEHICLE_TYPE_ICONS[vt.iconKey];
+                            return (
+                              <SelectItem key={vt.value} value={vt.value}>
+                                <span className="flex items-center gap-2">
+                                  <IconComp className="h-4 w-4 text-primary" />
+                                  <span>{vt.description}</span>
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
