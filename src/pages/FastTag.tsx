@@ -101,8 +101,8 @@ export default function FastTag() {
     customerMobile: '',
     truckNumber: '',
     truckOwnerName: '',
-    startDate: undefined,
-    endDate: undefined,
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    endDate: new Date(),
     openingBalance: '',
   });
 
