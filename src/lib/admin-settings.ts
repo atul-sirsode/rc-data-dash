@@ -69,6 +69,7 @@ export function getAllMenuItems() {
     { id: 'rc-verification', label: 'RC Verification' },
     { id: 'fast-tag', label: 'Fast Tag' },
     { id: 'user-master', label: 'User Master' },
+    { id: 'access-master', label: 'Access Master' },
     { id: 'settings', label: 'Settings' },
   ];
 }

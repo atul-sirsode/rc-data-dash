@@ -1,4 +1,4 @@
-import { Car, CreditCard, Settings, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { Car, CreditCard, Settings, ChevronLeft, ChevronRight, Users, ShieldCheck } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserAccess } from '@/lib/admin-settings';
@@ -9,6 +9,7 @@ const menuItems = [
   { id: 'rc-verification', label: 'RC Verification', icon: Car, path: '/' },
   { id: 'fast-tag', label: 'Fast Tag', icon: CreditCard, path: '/fast-tag' },
   { id: 'user-master', label: 'User Master', icon: Users, path: '/user-master' },
+  { id: 'access-master', label: 'Access Master', icon: ShieldCheck, path: '/access-master' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
@@ -18,10 +19,10 @@ export function AppSidebar() {
 
   const userAccess = username ? getUserAccess(username) : null;
   // Default: show all menus if user not in settings
-  const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'user-master', 'settings'];
+  const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'user-master', 'access-master', 'settings'];
 
   const mainMenus = menuItems.filter(item => item.id !== 'settings' && item.id !== 'user-master' && allowedMenus.includes(item.id));
-  const adminMenus = menuItems.filter(item => (item.id === 'user-master') && allowedMenus.includes(item.id));
+  const adminMenus = menuItems.filter(item => (item.id === 'user-master' || item.id === 'access-master') && allowedMenus.includes(item.id));
   const settingsMenu = menuItems.find(item => item.id === 'settings');
   const showSettings = allowedMenus.includes('settings');
 
