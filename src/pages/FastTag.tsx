@@ -61,6 +61,14 @@ const MOCK_TOLL_DATA = [
   { tollName: 'Keesara Fee Plaza', amount: '70' },
 ];
 
+interface RouteInfo {
+  routeName: string;
+  distance: string;
+  duration: string;
+  fastagTotal: number;
+  tollSegments: { name: string; amount: number }[];
+}
+
 interface FormData {
   vehicleNumber: string;
   customerName: string;
@@ -141,6 +149,7 @@ export default function FastTag() {
   const [sourceCities, setSourceCities] = useState<string[]>([]);
   const [destCities, setDestCities] = useState<string[]>([]);
   const [tolls, setTolls] = useState<TollEntry[]>([]);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
 
   // History state
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -279,6 +288,28 @@ export default function FastTag() {
     }));
     setTolls(newTolls);
     setTollsLoaded(true);
+
+    // Build route info from toll data
+    const totalAmount = newTolls.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const segments = newTolls
+      .filter(t => Number(t.amount) > 0 || newTolls.indexOf(t) === 0 || newTolls.indexOf(t) === newTolls.length - 1)
+      .map(t => ({ name: t.tollName, amount: Number(t.amount) || 0 }));
+    // Use first and last as key segments if not already included
+    const firstToll = newTolls[0];
+    const lastToll = newTolls[newTolls.length - 1];
+    const keySegments = [
+      { name: `${firstToll.tollName} to ${newTolls.find(t => Number(t.amount) > 0)?.tollName || lastToll.tollName}`, amount: totalAmount },
+      { name: lastToll.tollName, amount: Number(lastToll.amount) || 0 },
+    ];
+
+    setRouteInfo({
+      routeName: `${sourceCity} to ${destCity} Route`,
+      distance: `${Math.floor(Math.random() * 500 + 300)} km`,
+      duration: `${Math.floor(Math.random() * 12 + 4)} h ${Math.floor(Math.random() * 59)} min`,
+      fastagTotal: totalAmount,
+      tollSegments: keySegments,
+    });
+
     toast({ title: 'Toll routes loaded' });
   };
 
@@ -628,6 +659,34 @@ export default function FastTag() {
                 </CardContent>
               </Card>
             </motion.div>
+
+            {/* Route Breadcrumb */}
+            {routeInfo && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+                <Card className="border-primary/20">
+                  <CardContent className="pt-5 pb-4">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-foreground">{routeInfo.routeName}</span>
+                        <span className="text-sm text-muted-foreground">({routeInfo.distance} • {routeInfo.duration})</span>
+                        <span className="ml-auto text-sm font-semibold text-primary">FASTag Total: ₹{routeInfo.fastagTotal}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap text-sm">
+                        {routeInfo.tollSegments.map((seg, idx) => (
+                          <span key={idx} className="flex items-center gap-2">
+                            {idx > 0 && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                            <span className="px-3 py-1 rounded-full border border-border bg-muted/50 text-foreground">
+                              {seg.name} • ₹{seg.amount}
+                            </span>
+                          </span>
+                        ))}
+                        <span className="ml-2 font-semibold text-primary">⇒ ₹{routeInfo.fastagTotal}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Find Tolls */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
