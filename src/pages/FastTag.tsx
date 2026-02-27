@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/SearchableSelect';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -694,47 +695,41 @@ export default function FastTag() {
                     </div>
                     <div className="space-y-2">
                       <Label className="font-semibold text-foreground">Source State</Label>
-                      <Select value={sourceState} onValueChange={v => { setSourceState(v); setSourceCity(''); }}>
-                        <SelectTrigger><SelectValue placeholder="Select a state" /></SelectTrigger>
-                        <SelectContent>
-                          {DUMMY_STATES.map(s => (
-                            <SelectItem key={s.iso_code} value={s.iso_code}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        value={sourceState}
+                        onValueChange={v => { setSourceState(v); setSourceCity(''); }}
+                        placeholder="Select a state"
+                        options={DUMMY_STATES.map(s => ({ label: s.name, value: s.iso_code }))}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="font-semibold text-foreground">Source City</Label>
-                      <Select value={sourceCity} onValueChange={setSourceCity} disabled={!sourceState}>
-                        <SelectTrigger><SelectValue placeholder="Enter source city" /></SelectTrigger>
-                        <SelectContent>
-                          {sourceCities.map(c => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        value={sourceCity}
+                        onValueChange={setSourceCity}
+                        placeholder="Enter source city"
+                        disabled={!sourceState}
+                        options={sourceCities.map(c => ({ label: c, value: c }))}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="font-semibold text-foreground">Destination State</Label>
-                      <Select value={destState} onValueChange={v => { setDestState(v); setDestCity(''); }}>
-                        <SelectTrigger><SelectValue placeholder="Select a state" /></SelectTrigger>
-                        <SelectContent>
-                          {DUMMY_STATES.map(s => (
-                            <SelectItem key={s.iso_code} value={s.iso_code}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        value={destState}
+                        onValueChange={v => { setDestState(v); setDestCity(''); }}
+                        placeholder="Select a state"
+                        options={DUMMY_STATES.map(s => ({ label: s.name, value: s.iso_code }))}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="font-semibold text-foreground">Destination City</Label>
-                      <Select value={destCity} onValueChange={setDestCity} disabled={!destState}>
-                        <SelectTrigger><SelectValue placeholder="Enter destination city" /></SelectTrigger>
-                        <SelectContent>
-                          {destCities.map(c => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        value={destCity}
+                        onValueChange={setDestCity}
+                        placeholder="Enter destination city"
+                        disabled={!destState}
+                        options={destCities.map(c => ({ label: c, value: c }))}
+                      />
                     </div>
                   </div>
                   <div className="flex justify-end">
