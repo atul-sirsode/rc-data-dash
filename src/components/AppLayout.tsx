@@ -20,12 +20,10 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
     : 'U';
 
   return (
-    <div className="flex min-h-screen w-full overflow-hidden">
-      <div className="shrink-0 sticky top-0 h-screen overflow-y-auto">
-        <AppSidebar />
-      </div>
+    <div className="flex min-h-screen w-full">
+      <AppSidebar />
 
-      <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-hidden bg-background">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 bg-background">
         {/* Header */}
         <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-border bg-card">
           <div className="flex items-center justify-between h-full px-4 md:px-6">
