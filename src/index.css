@@ -151,4 +151,16 @@
       background-position: -200% 0;
     }
   }
+
+  /* Fix datetime-local input calendar button alignment */
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 4px;
+  }
+
+  input[type="datetime-local"] {
+    display: flex;
+    align-items: center;
+  }
 }
