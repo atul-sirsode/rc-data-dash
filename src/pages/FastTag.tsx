@@ -19,6 +19,33 @@ import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { verifyRC, getMockRCData } from '@/lib/rc-api';
 
+// Dummy states and cities for fallback
+const DUMMY_STATES: StateOption[] = [
+  { name: 'Maharashtra', iso_code: 'MH' },
+  { name: 'Telangana', iso_code: 'TG' },
+  { name: 'Karnataka', iso_code: 'KA' },
+  { name: 'Tamil Nadu', iso_code: 'TN' },
+  { name: 'Gujarat', iso_code: 'GJ' },
+  { name: 'Rajasthan', iso_code: 'RJ' },
+  { name: 'Uttar Pradesh', iso_code: 'UP' },
+  { name: 'Madhya Pradesh', iso_code: 'MP' },
+  { name: 'Andhra Pradesh', iso_code: 'AP' },
+  { name: 'Delhi', iso_code: 'DL' },
+];
+
+const DUMMY_CITIES: Record<string, string[]> = {
+  MH: ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Aurangabad', 'Thane', 'Solapur', 'Kolhapur'],
+  TG: ['Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar', 'Khammam', 'Ramagundam'],
+  KA: ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum', 'Gulbarga'],
+  TN: ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Trichy', 'Tirunelveli'],
+  GJ: ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Bhavnagar', 'Jamnagar'],
+  RJ: ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Ajmer', 'Bikaner'],
+  UP: ['Lucknow', 'Kanpur', 'Agra', 'Varanasi', 'Allahabad', 'Meerut'],
+  MP: ['Bhopal', 'Indore', 'Jabalpur', 'Gwalior', 'Ujjain', 'Sagar'],
+  AP: ['Vijayawada', 'Visakhapatnam', 'Guntur', 'Nellore', 'Tirupati', 'Kurnool'],
+  DL: ['New Delhi', 'North Delhi', 'South Delhi', 'East Delhi', 'West Delhi'],
+};
+
 const VEHICLE_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   car: Car,
   truck: Truck,
@@ -175,16 +202,17 @@ export default function FastTag() {
       .then(res => res.json())
       .then(data => {
         const statesList = data?.data ?? data?.states ?? data;
-        if (Array.isArray(statesList)) {
+        if (Array.isArray(statesList) && statesList.length > 0) {
           setStates(statesList.map((s: any) => ({
             name: s.name || s.state || s,
             iso_code: s.iso_code || s.isoCode || s.iso2 || s.code || '',
           })));
+        } else {
+          setStates(DUMMY_STATES);
         }
       })
-      .catch(err => {
-        console.error('States fetch error:', err);
-        toast({ title: 'Failed to load states', variant: 'destructive' });
+      .catch(() => {
+        setStates(DUMMY_STATES);
       });
   }, [submitted]);
 
@@ -197,9 +225,13 @@ export default function FastTag() {
       .then(res => res.json())
       .then(data => {
         const cities = data?.data ?? data?.cities ?? data;
-        if (Array.isArray(cities)) setSourceCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
+        if (Array.isArray(cities) && cities.length > 0) {
+          setSourceCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
+        } else {
+          setSourceCities(DUMMY_CITIES[sourceState] || []);
+        }
       })
-      .catch(() => setSourceCities([]));
+      .catch(() => setSourceCities(DUMMY_CITIES[sourceState] || []));
   }, [sourceState]);
 
   // Fetch dest cities
@@ -211,9 +243,13 @@ export default function FastTag() {
       .then(res => res.json())
       .then(data => {
         const cities = data?.data ?? data?.cities ?? data;
-        if (Array.isArray(cities)) setDestCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
+        if (Array.isArray(cities) && cities.length > 0) {
+          setDestCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
+        } else {
+          setDestCities(DUMMY_CITIES[destState] || []);
+        }
       })
-      .catch(() => setDestCities([]));
+      .catch(() => setDestCities(DUMMY_CITIES[destState] || []));
   }, [destState]);
 
   const updateForm = (key: keyof FormData, value: any) => {
