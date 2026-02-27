@@ -172,11 +172,12 @@ export default function FastTag() {
   const [sourceCity, setSourceCity] = useState('');
   const [destState, setDestState] = useState('');
   const [destCity, setDestCity] = useState('');
-  const [states, setStates] = useState<StateOption[]>([]);
-  const [sourceCities, setSourceCities] = useState<string[]>([]);
-  const [destCities, setDestCities] = useState<string[]>([]);
   const [tolls, setTolls] = useState<TollEntry[]>([]);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
+
+  // Derive cities from hardcoded data
+  const sourceCities = sourceState ? (DUMMY_CITIES[sourceState] || []) : [];
+  const destCities = destState ? (DUMMY_CITIES[destState] || []) : [];
 
   // History state
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -191,66 +192,6 @@ export default function FastTag() {
     amount: '',
     description: '',
   });
-
-  // Fetch states only when post-submit view is shown
-  useEffect(() => {
-    if (!submitted) return;
-    fetch('https://api.atulsirsode.cloud/api/states-cities/get-states', {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-    })
-      .then(res => res.json())
-      .then(data => {
-        const statesList = data?.data ?? data?.states ?? data;
-        if (Array.isArray(statesList) && statesList.length > 0) {
-          setStates(statesList.map((s: any) => ({
-            name: s.name || s.state || s,
-            iso_code: s.iso_code || s.isoCode || s.iso2 || s.code || '',
-          })));
-        } else {
-          setStates(DUMMY_STATES);
-        }
-      })
-      .catch(() => {
-        setStates(DUMMY_STATES);
-      });
-  }, [submitted]);
-
-  // Fetch source cities
-  useEffect(() => {
-    if (!sourceState) { setSourceCities([]); return; }
-    fetch(`https://api.atulsirsode.cloud/api/states-cities/get-city-by-state?iso_code=${sourceState}`, {
-      headers: { 'Accept': 'application/json' },
-    })
-      .then(res => res.json())
-      .then(data => {
-        const cities = data?.data ?? data?.cities ?? data;
-        if (Array.isArray(cities) && cities.length > 0) {
-          setSourceCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
-        } else {
-          setSourceCities(DUMMY_CITIES[sourceState] || []);
-        }
-      })
-      .catch(() => setSourceCities(DUMMY_CITIES[sourceState] || []));
-  }, [sourceState]);
-
-  // Fetch dest cities
-  useEffect(() => {
-    if (!destState) { setDestCities([]); return; }
-    fetch(`https://api.atulsirsode.cloud/api/states-cities/get-city-by-state?iso_code=${destState}`, {
-      headers: { 'Accept': 'application/json' },
-    })
-      .then(res => res.json())
-      .then(data => {
-        const cities = data?.data ?? data?.cities ?? data;
-        if (Array.isArray(cities) && cities.length > 0) {
-          setDestCities(cities.map((c: any) => typeof c === 'string' ? c : c.name || c.city || ''));
-        } else {
-          setDestCities(DUMMY_CITIES[destState] || []);
-        }
-      })
-      .catch(() => setDestCities(DUMMY_CITIES[destState] || []));
-  }, [destState]);
 
   const updateForm = (key: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -756,7 +697,7 @@ export default function FastTag() {
                       <Select value={sourceState} onValueChange={v => { setSourceState(v); setSourceCity(''); }}>
                         <SelectTrigger><SelectValue placeholder="Select a state" /></SelectTrigger>
                         <SelectContent>
-                          {states.map(s => (
+                          {DUMMY_STATES.map(s => (
                             <SelectItem key={s.iso_code} value={s.iso_code}>{s.name}</SelectItem>
                           ))}
                         </SelectContent>
@@ -778,7 +719,7 @@ export default function FastTag() {
                       <Select value={destState} onValueChange={v => { setDestState(v); setDestCity(''); }}>
                         <SelectTrigger><SelectValue placeholder="Select a state" /></SelectTrigger>
                         <SelectContent>
-                          {states.map(s => (
+                          {DUMMY_STATES.map(s => (
                             <SelectItem key={s.iso_code} value={s.iso_code}>{s.name}</SelectItem>
                           ))}
                         </SelectContent>
