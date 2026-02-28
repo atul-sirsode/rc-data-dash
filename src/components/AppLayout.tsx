@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { LogOut, RefreshCw, Bell, Menu, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -20,6 +20,13 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
   const navigate = useNavigate();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Listen for custom event to collapse sidebar
+  React.useEffect(() => {
+    const handler = () => setSidebarCollapsed(true);
+    window.addEventListener('collapse-sidebar', handler);
+    return () => window.removeEventListener('collapse-sidebar', handler);
+  }, []);
 
   const initials = username
     ? username.slice(0, 2).toUpperCase()
