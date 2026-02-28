@@ -21,7 +21,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
       username: 'admin',
       password: 'admin123',
       bypassOTP: true,
-      allowedMenus: ['rc-verification', 'fast-tag', 'user-master', 'settings'],
+      allowedMenus: ['rc-verification', 'fast-tag', 'fast-tag-upload', 'user-master', 'settings'],
       isAdmin: true,
     },
   ],
@@ -68,6 +68,7 @@ export function getAllMenuItems() {
   return [
     { id: 'rc-verification', label: 'RC Verification' },
     { id: 'fast-tag', label: 'Fast Tag' },
+    { id: 'fast-tag-upload', label: 'FastTag Upload' },
     { id: 'user-master', label: 'User Master' },
     { id: 'access-master', label: 'Access Master' },
     { id: 'settings', label: 'Settings' },

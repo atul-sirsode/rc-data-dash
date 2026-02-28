@@ -34,7 +34,7 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
   const userAccess = username ? getUserAccess(username) : null;
   const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'fast-tag-upload', 'user-master', 'access-master', 'settings'];
 
-  const mainMenus = menuItems.filter(item => item.id !== 'user-master' && allowedMenus.includes(item.id));
+  const mainMenus = menuItems.filter(item => item.id !== 'user-master' && item.id !== 'access-master' && allowedMenus.includes(item.id));
   const adminMenus = menuItems.filter(item => (item.id === 'user-master' || item.id === 'access-master') && allowedMenus.includes(item.id));
 
   return (
