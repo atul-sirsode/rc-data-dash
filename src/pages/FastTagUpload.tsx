@@ -32,7 +32,7 @@ const COLUMN_LABELS: Record<string, string> = {
   destination_state: 'Destination State',
   destination_city: 'Destination City',
   opening_amount: 'Opening Amount',
-  start_date: 'Start Date',
+  start_date: 'Start DateTime',
 };
 
 interface UploadedRow {
@@ -81,7 +81,7 @@ function findColumn(headers: string[], target: string): string | null {
     destination_state: ['destination_state', 'destinationstate', 'dest_state', 'deststate', 'to_state', 'tostate'],
     destination_city: ['destination_city', 'destinationcity', 'dest_city', 'destcity', 'to_city', 'tocity'],
     opening_amount: ['opening_amount', 'openingamount', 'opening_balance', 'openingbalance', 'amount'],
-    start_date: ['start_date', 'startdate', 'date', 'from_date', 'fromdate'],
+    start_date: ['start_date', 'startdate', 'start_datetime', 'startdatetime', 'date', 'from_date', 'fromdate', 'date_time', 'datetime'],
   };
   const targetAliases = aliases[target] || [target];
   for (const header of headers) {
@@ -164,9 +164,9 @@ function downloadDummyExcel() {
   const banks = getEnabledBanks();
   const bankName = banks.length > 0 ? banks[0].name : 'ICICI Bank';
   const dummyData = [
-    { RC_Number: 'TS09UB1234', Bank: bankName, Source_State: 'Telangana', Source_City: 'Hyderabad', Destination_State: 'Maharashtra', Destination_City: 'Mumbai', Opening_Amount: '1000', Start_Date: '01-02-2026' },
-    { RC_Number: 'MH12AB5678', Bank: 'HDFC Bank', Source_State: 'Maharashtra', Source_City: 'Pune', Destination_State: 'Karnataka', Destination_City: 'Bangalore', Opening_Amount: '1500', Start_Date: '01-02-2026' },
-    { RC_Number: 'KA01CD9012', Bank: 'Axis Bank', Source_State: 'Karnataka', Source_City: 'Bangalore', Destination_State: 'Tamil Nadu', Destination_City: 'Chennai', Opening_Amount: '800', Start_Date: '01-02-2026' },
+    { RC_Number: 'TS09UB1234', Bank: bankName, Source_State: 'Telangana', Source_City: 'Hyderabad', Destination_State: 'Maharashtra', Destination_City: 'Mumbai', Opening_Amount: '1000', Start_DateTime: '01-02-2026 08:00 AM' },
+    { RC_Number: 'MH12AB5678', Bank: 'HDFC Bank', Source_State: 'Maharashtra', Source_City: 'Pune', Destination_State: 'Karnataka', Destination_City: 'Bangalore', Opening_Amount: '1500', Start_DateTime: '01-02-2026 10:30 AM' },
+    { RC_Number: 'KA01CD9012', Bank: 'Axis Bank', Source_State: 'Karnataka', Source_City: 'Bangalore', Destination_State: 'Tamil Nadu', Destination_City: 'Chennai', Opening_Amount: '800', Start_DateTime: '01-02-2026 02:15 PM' },
   ];
   const ws = XLSX.utils.json_to_sheet(dummyData);
   const wb = XLSX.utils.book_new();
