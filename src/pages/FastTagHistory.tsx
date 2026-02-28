@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, History, ArrowLeft, Loader2 } from 'lucide-react';
+import { Search, History, ArrowLeft, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { getEnabledBanks } from '@/lib/admin-settings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -28,56 +29,11 @@ interface HistoryRecord {
 // Mock data generator
 function getMockHistory(vehicleNumber: string, bank: string): HistoryRecord[] {
   const entries: HistoryRecord[] = [
-    {
-      id: '1',
-      processingTime: '25 Feb 26, 12:00 AM',
-      transactionTime: '28 Feb 26, 12:00 AM',
-      nature: 'Debit',
-      amount: '90',
-      closingBalance: '910',
-      description: 'Sarandi Toll Plaza',
-      txnId: '804596735861030',
-    },
-    {
-      id: '2',
-      processingTime: '24 Feb 26, 10:30 AM',
-      transactionTime: '27 Feb 26, 10:30 AM',
-      nature: 'Debit',
-      amount: '76',
-      closingBalance: '834',
-      description: 'Basanthnagar Toll',
-      txnId: '904596735861031',
-    },
-    {
-      id: '3',
-      processingTime: '23 Feb 26, 08:15 AM',
-      transactionTime: '26 Feb 26, 08:15 AM',
-      nature: 'Credit',
-      amount: '500',
-      closingBalance: '1334',
-      description: 'Recharge',
-      txnId: '704596735861032',
-    },
-    {
-      id: '4',
-      processingTime: '22 Feb 26, 03:00 PM',
-      transactionTime: '25 Feb 26, 03:00 PM',
-      nature: 'Debit',
-      amount: '110',
-      closingBalance: '1224',
-      description: 'Chillakallu Toll',
-      txnId: '604596735861033',
-    },
-    {
-      id: '5',
-      processingTime: '20 Feb 26, 11:00 AM',
-      transactionTime: '23 Feb 26, 11:00 AM',
-      nature: 'Debit',
-      amount: '45',
-      closingBalance: '1179',
-      description: 'Yerkaram Toll',
-      txnId: '504596735861034',
-    },
+    { id: '1', processingTime: '25 Feb 26, 12:00 AM', transactionTime: '28 Feb 26, 12:00 AM', nature: 'Debit', amount: '90', closingBalance: '910', description: 'Sarandi Toll Plaza', txnId: '804596735861030' },
+    { id: '2', processingTime: '24 Feb 26, 10:30 AM', transactionTime: '27 Feb 26, 10:30 AM', nature: 'Debit', amount: '76', closingBalance: '834', description: 'Basanthnagar Toll', txnId: '904596735861031' },
+    { id: '3', processingTime: '23 Feb 26, 08:15 AM', transactionTime: '26 Feb 26, 08:15 AM', nature: 'Credit', amount: '500', closingBalance: '1334', description: 'Recharge', txnId: '704596735861032' },
+    { id: '4', processingTime: '22 Feb 26, 03:00 PM', transactionTime: '25 Feb 26, 03:00 PM', nature: 'Debit', amount: '110', closingBalance: '1224', description: 'Chillakallu Toll', txnId: '604596735861033' },
+    { id: '5', processingTime: '20 Feb 26, 11:00 AM', transactionTime: '23 Feb 26, 11:00 AM', nature: 'Debit', amount: '45', closingBalance: '1179', description: 'Yerkaram Toll', txnId: '504596735861034' },
   ];
   return entries;
 }
@@ -92,6 +48,10 @@ export default function FastTagHistory() {
   const [searched, setSearched] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
 
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<HistoryRecord | null>(null);
+
   const bankOptions = useMemo(() => banks.map(b => ({ value: b.id, label: b.name })), [banks]);
 
   const handleSearch = async () => {
@@ -103,15 +63,31 @@ export default function FastTagHistory() {
       toast({ title: 'Please enter vehicle number', variant: 'destructive' });
       return;
     }
-
     setLoading(true);
-    // Simulate API call
     await new Promise(r => setTimeout(r, 800));
     const data = getMockHistory(vehicleNumber, selectedBank);
     setHistory(data);
     setSearched(true);
     setLoading(false);
     toast({ title: `Found ${data.length} transaction(s)` });
+  };
+
+  const handleDelete = (id: string) => {
+    setHistory(prev => prev.filter(h => h.id !== id));
+    toast({ title: 'Transaction deleted' });
+  };
+
+  const handleOpenEdit = (entry: HistoryRecord) => {
+    setEditingEntry({ ...entry });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingEntry) return;
+    setHistory(prev => prev.map(h => h.id === editingEntry.id ? editingEntry : h));
+    setEditDialogOpen(false);
+    setEditingEntry(null);
+    toast({ title: 'Transaction updated' });
   };
 
   const filteredHistory = useMemo(() => {
@@ -212,10 +188,11 @@ export default function FastTagHistory() {
                             <TableHead className="text-xs font-semibold whitespace-nowrap">Closing Balance</TableHead>
                             <TableHead className="text-xs font-semibold whitespace-nowrap">Description</TableHead>
                             <TableHead className="text-xs font-semibold whitespace-nowrap">Txn ID</TableHead>
+                            <TableHead className="text-xs font-semibold whitespace-nowrap">Action</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredHistory.map((row, idx) => (
+                          {filteredHistory.map((row) => (
                             <TableRow key={row.id}>
                               <TableCell className="text-sm whitespace-nowrap">{row.processingTime}</TableCell>
                               <TableCell className="text-sm whitespace-nowrap">{row.transactionTime}</TableCell>
@@ -235,6 +212,26 @@ export default function FastTagHistory() {
                               <TableCell className="text-sm">₹{row.closingBalance}</TableCell>
                               <TableCell className="text-sm">{row.description}</TableCell>
                               <TableCell className="text-sm font-mono text-xs text-muted-foreground">{row.txnId}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                    onClick={() => handleOpenEdit(row)}
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                    onClick={() => handleDelete(row.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -246,6 +243,51 @@ export default function FastTagHistory() {
             </Card>
           </motion.div>
         )}
+
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Transaction</DialogTitle>
+            </DialogHeader>
+            {editingEntry && (
+              <div className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <Label>Processing Time</Label>
+                  <Input
+                    value={editingEntry.processingTime}
+                    onChange={e => setEditingEntry({ ...editingEntry, processingTime: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Transaction Time</Label>
+                  <Input
+                    value={editingEntry.transactionTime}
+                    onChange={e => setEditingEntry({ ...editingEntry, transactionTime: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Amount</Label>
+                  <Input
+                    value={editingEntry.amount}
+                    onChange={e => setEditingEntry({ ...editingEntry, amount: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Input
+                    value={editingEntry.description}
+                    onChange={e => setEditingEntry({ ...editingEntry, description: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveEdit}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
