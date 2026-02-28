@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2, Car, Bus, Bike, Caravan, Trash2 } from 'lucide-react';
+import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2, Car, Bus, Bike, Caravan, Trash2, FileDown } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
+import { fastTagRepo } from '@/lib/db';
+import { generateFastTagPDF } from '@/lib/fasttag-pdf';
 import { getEnabledBanks } from '@/lib/admin-settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -198,6 +200,7 @@ export default function FastTag() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [savingSession, setSavingSession] = useState(false);
 
   // Manual transaction state
   const [manualTx, setManualTx] = useState<ManualTransaction>({
@@ -415,6 +418,72 @@ export default function FastTag() {
     setEditDialogOpen(false);
     setEditingEntry(null);
     toast({ title: 'Transaction updated' });
+  };
+  // Generate PDF and save to database
+  const handleGeneratePDFAndSave = async () => {
+    if (history.length === 0) {
+      toast({ title: 'No transactions to save', variant: 'destructive' });
+      return;
+    }
+
+    setSavingSession(true);
+    try {
+      // 1. Save session to DB
+      const session = await fastTagRepo.createSession({
+        bank_id: selectedBank!,
+        bank_name: selectedBankName,
+        vehicle_number: formData.vehicleNumber,
+        customer_name: formData.customerName,
+        customer_mobile: formData.customerMobile,
+        truck_number: formData.truckNumber,
+        truck_owner_name: formData.truckOwnerName,
+        opening_balance: Number(formData.openingBalance) || 0,
+        start_date: formData.startDate?.toISOString(),
+        end_date: formData.endDate?.toISOString(),
+      });
+
+      // 2. Save history entries to DB
+      const historyData = history.map(h => ({
+        session_id: session.id,
+        processing_time: h.processingTime || undefined,
+        transaction_time: h.transactionTime || undefined,
+        nature: h.nature,
+        amount: Number(h.amount) || 0,
+        closing_balance: Number(h.closingBalance.replace(/,/g, '')) || 0,
+        description: h.description,
+        txn_id: h.txnId,
+      }));
+      await fastTagRepo.createHistoryEntries(historyData);
+
+      // 3. Generate PDF
+      generateFastTagPDF(
+        {
+          bankName: selectedBankName,
+          vehicleNumber: formData.vehicleNumber,
+          customerName: formData.customerName,
+          truckNumber: formData.truckNumber,
+          truckOwnerName: formData.truckOwnerName,
+          openingBalance: formData.openingBalance,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+        },
+        history.map(h => ({
+          processingTime: h.processingTime,
+          transactionTime: h.transactionTime,
+          nature: h.nature,
+          amount: h.amount,
+          closingBalance: h.closingBalance,
+          description: h.description,
+          txnId: h.txnId,
+        }))
+      );
+
+      toast({ title: 'Session saved & PDF generated successfully' });
+    } catch (err: any) {
+      toast({ title: 'Failed to save', description: err.message, variant: 'destructive' });
+    } finally {
+      setSavingSession(false);
+    }
   };
 
   // Bank selection screen
@@ -938,8 +1007,14 @@ export default function FastTag() {
             {/* Generate PDF Button */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
               <div className="flex justify-center">
-                <Button size="lg" className="w-full sm:w-auto px-12 py-6 text-base bg-muted-foreground hover:bg-muted-foreground/90 text-background rounded-xl">
-                  Generate PDF and Save Changes
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto px-12 py-6 text-base bg-muted-foreground hover:bg-muted-foreground/90 text-background rounded-xl gap-2"
+                  onClick={handleGeneratePDFAndSave}
+                  disabled={savingSession}
+                >
+                  {savingSession ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileDown className="w-5 h-5" />}
+                  {savingSession ? 'Saving...' : 'Generate PDF and Save Changes'}
                 </Button>
               </div>
             </motion.div>

@@ -14,7 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fasttag_history: {
+        Row: {
+          amount: number
+          closing_balance: number
+          created_at: string
+          description: string | null
+          id: string
+          nature: string
+          processing_time: string | null
+          session_id: string
+          transaction_time: string | null
+          txn_id: string | null
+        }
+        Insert: {
+          amount?: number
+          closing_balance?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          nature: string
+          processing_time?: string | null
+          session_id: string
+          transaction_time?: string | null
+          txn_id?: string | null
+        }
+        Update: {
+          amount?: number
+          closing_balance?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          nature?: string
+          processing_time?: string | null
+          session_id?: string
+          transaction_time?: string | null
+          txn_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fasttag_history_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "fasttag_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fasttag_sessions: {
+        Row: {
+          bank_id: string
+          bank_name: string
+          created_at: string
+          customer_mobile: string | null
+          customer_name: string | null
+          end_date: string | null
+          id: string
+          opening_balance: number
+          pdf_url: string | null
+          start_date: string | null
+          truck_number: string | null
+          truck_owner_name: string | null
+          updated_at: string
+          vehicle_number: string
+        }
+        Insert: {
+          bank_id: string
+          bank_name: string
+          created_at?: string
+          customer_mobile?: string | null
+          customer_name?: string | null
+          end_date?: string | null
+          id?: string
+          opening_balance?: number
+          pdf_url?: string | null
+          start_date?: string | null
+          truck_number?: string | null
+          truck_owner_name?: string | null
+          updated_at?: string
+          vehicle_number: string
+        }
+        Update: {
+          bank_id?: string
+          bank_name?: string
+          created_at?: string
+          customer_mobile?: string | null
+          customer_name?: string | null
+          end_date?: string | null
+          id?: string
+          opening_balance?: number
+          pdf_url?: string | null
+          start_date?: string | null
+          truck_number?: string | null
+          truck_owner_name?: string | null
+          updated_at?: string
+          vehicle_number?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
