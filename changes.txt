@@ -1,6 +1,33 @@
 Changes made today (2026-02-28):
 
+=== Mobile Responsiveness ===
+src/components/AppLayout.tsx
+src/components/AppSidebar.tsx
+src/index.css
+src/pages/Dashboard.tsx
 src/pages/FastTag.tsx
 src/pages/FastTagUpload.tsx
-src/lib/db.ts
-src/lib/fasttag-pdf.ts
+src/pages/Settings.tsx
+src/pages/UserMaster.tsx
+src/pages/AccessMaster.tsx
+src/pages/Login.tsx
+src/components/DataTable.tsx
+src/components/StatsCards.tsx
+src/components/FileUpload.tsx
+src/components/SessionTimer.tsx
+
+=== FastTag Upload - Start DateTime Update ===
+src/pages/FastTagUpload.tsx
+
+=== Toll Removal from List After Adding to Statement ===
+src/pages/FastTag.tsx
+
+=== PDF Generation with Bank Logo + Save to Database ===
+src/pages/FastTag.tsx
+src/lib/db.ts (new)
+src/lib/fasttag-pdf.ts (new)
+
+=== Lovable Cloud / Database Migration ===
+supabase/ (migration for fasttag_sessions & fasttag_history tables)
+src/integrations/supabase/client.ts (auto-generated)
+src/integrations/supabase/types.ts (auto-generated)
