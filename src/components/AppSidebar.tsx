@@ -16,13 +16,24 @@ const menuItems = [
 
 interface AppSidebarProps {
   onNavigate?: () => void;
+  onMenuSelect?: () => void;
 }
 
-export function AppSidebar({ onNavigate }: AppSidebarProps) {
+export function AppSidebar({ onNavigate, onMenuSelect }: AppSidebarProps) {
   const { username } = useAuth();
   const isMobile = useIsMobile();
   const [collapsed, setCollapsed] = useState(false);
   const isCollapsed = isMobile ? false : collapsed;
+
+  const handleNavClick = () => {
+    onNavigate?.();
+    if (!isMobile) {
+      setCollapsed(true);
+      onMenuSelect?.();
+    }
+  };
+
+
 
   const userAccess = username ? getUserAccess(username) : null;
   const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'user-master', 'access-master', 'settings'];
@@ -70,7 +81,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             key={item.id}
             to={item.path}
             end={item.path === '/'}
-            onClick={onNavigate}
+            onClick={handleNavClick}
             className={cn(
               'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
               'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
@@ -95,7 +106,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
               <NavLink
                 key={item.id}
                 to={item.path}
-                onClick={onNavigate}
+                onClick={handleNavClick}
                 className={cn(
                   'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
                   'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
@@ -117,7 +128,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
           <div className="px-3 py-2">
             <NavLink
               to={settingsMenu.path}
-              onClick={onNavigate}
+              onClick={handleNavClick}
               className={cn(
                 'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
                 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
