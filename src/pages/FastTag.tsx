@@ -155,6 +155,7 @@ export default function FastTag() {
     setSelectedBankState(bank);
     if (bank) {
       sessionStorage.setItem('fasttag-selected-bank', bank);
+      window.dispatchEvent(new Event('collapse-sidebar'));
     } else {
       sessionStorage.removeItem('fasttag-selected-bank');
     }
