@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2, Car, Bus, Bike, Caravan, Trash2 } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
@@ -146,6 +147,7 @@ function generateTxnId(): string {
 }
 
 export default function FastTag() {
+  const navigate = useNavigate();
   const banks = getEnabledBanks();
   const [selectedBank, setSelectedBankState] = useState<string | null>(() => {
     return sessionStorage.getItem('fasttag-selected-bank');
@@ -457,6 +459,7 @@ export default function FastTag() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: banks.length * 0.05 }}
+                onClick={() => navigate('/fast-tag/history')}
                 className="w-full flex items-center gap-4 p-4 rounded-xl border border-border hover:border-primary/40 hover:bg-muted/50 transition-all text-left"
               >
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
