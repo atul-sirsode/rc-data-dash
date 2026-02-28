@@ -1,4 +1,4 @@
-import { Car, CreditCard, ChevronLeft, ChevronRight, Users, ShieldCheck } from 'lucide-react';
+import { Car, CreditCard, ChevronLeft, ChevronRight, Users, ShieldCheck, Upload } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserAccess } from '@/lib/admin-settings';
@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const menuItems = [
   { id: 'rc-verification', label: 'RC Verification', icon: Car, path: '/' },
   { id: 'fast-tag', label: 'Fast Tag', icon: CreditCard, path: '/fast-tag' },
+  { id: 'fast-tag-upload', label: 'FastTag Upload', icon: Upload, path: '/fast-tag-upload' },
   { id: 'user-master', label: 'User Master', icon: Users, path: '/user-master' },
   { id: 'access-master', label: 'Access Master', icon: ShieldCheck, path: '/access-master' },
 ];
@@ -31,7 +32,7 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
   };
 
   const userAccess = username ? getUserAccess(username) : null;
-  const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'user-master', 'access-master', 'settings'];
+  const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'fast-tag-upload', 'user-master', 'access-master', 'settings'];
 
   const mainMenus = menuItems.filter(item => item.id !== 'user-master' && allowedMenus.includes(item.id));
   const adminMenus = menuItems.filter(item => (item.id === 'user-master' || item.id === 'access-master') && allowedMenus.includes(item.id));
