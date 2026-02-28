@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getUserAccess } from '@/lib/admin-settings';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const menuItems = [
   { id: 'rc-verification', label: 'RC Verification', icon: Car, path: '/' },
@@ -13,12 +14,17 @@ const menuItems = [
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  onNavigate?: () => void;
+}
+
+export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const { username } = useAuth();
+  const isMobile = useIsMobile();
   const [collapsed, setCollapsed] = useState(false);
+  const isCollapsed = isMobile ? false : collapsed;
 
   const userAccess = username ? getUserAccess(username) : null;
-  // Default: show all menus if user not in settings
   const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'user-master', 'access-master', 'settings'];
 
   const mainMenus = menuItems.filter(item => item.id !== 'settings' && item.id !== 'user-master' && allowedMenus.includes(item.id));
@@ -29,20 +35,21 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        'h-screen sticky top-0 flex flex-col transition-all duration-300 ease-in-out',
+        'h-screen flex flex-col transition-all duration-300 ease-in-out',
         'bg-sidebar-background text-sidebar-foreground',
-        collapsed ? 'w-[72px]' : 'w-64'
+        isMobile ? 'w-full' : (isCollapsed ? 'w-[72px]' : 'w-64'),
+        !isMobile && 'sticky top-0'
       )}
     >
       {/* Logo */}
       <div className={cn(
         'flex items-center h-16 shrink-0 px-4',
-        collapsed ? 'justify-center' : 'gap-3'
+        isCollapsed ? 'justify-center' : 'gap-3'
       )}>
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
           <Car className="w-5 h-5 text-primary-foreground" />
         </div>
-        {!collapsed && (
+        {!isCollapsed && (
           <span className="text-base font-bold tracking-tight text-sidebar-foreground truncate">
             Transcologistics
           </span>
@@ -53,7 +60,7 @@ export function AppSidebar() {
       <nav className="flex-1 flex flex-col gap-1 px-3 py-4">
         <span className={cn(
           'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2',
-          collapsed ? 'sr-only' : 'px-3'
+          isCollapsed ? 'sr-only' : 'px-3'
         )}>
           Menu
         </span>
@@ -63,15 +70,16 @@ export function AppSidebar() {
             key={item.id}
             to={item.path}
             end={item.path === '/'}
+            onClick={onNavigate}
             className={cn(
               'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
               'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
-              collapsed && 'justify-center px-2'
+              isCollapsed && 'justify-center px-2'
             )}
             activeClassName="!bg-sidebar-accent !text-sidebar-foreground"
           >
             <item.icon className="w-5 h-5 shrink-0" />
-            {!collapsed && <span>{item.label}</span>}
+            {!isCollapsed && <span>{item.label}</span>}
           </NavLink>
         ))}
 
@@ -79,7 +87,7 @@ export function AppSidebar() {
           <>
             <span className={cn(
               'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 mt-4',
-              collapsed ? 'sr-only' : 'px-3'
+              isCollapsed ? 'sr-only' : 'px-3'
             )}>
               Admin
             </span>
@@ -87,15 +95,16 @@ export function AppSidebar() {
               <NavLink
                 key={item.id}
                 to={item.path}
+                onClick={onNavigate}
                 className={cn(
                   'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
                   'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
-                  collapsed && 'justify-center px-2'
+                  isCollapsed && 'justify-center px-2'
                 )}
                 activeClassName="!bg-sidebar-accent !text-sidebar-foreground"
               >
                 <item.icon className="w-5 h-5 shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+                {!isCollapsed && <span>{item.label}</span>}
               </NavLink>
             ))}
           </>
@@ -108,28 +117,31 @@ export function AppSidebar() {
           <div className="px-3 py-2">
             <NavLink
               to={settingsMenu.path}
+              onClick={onNavigate}
               className={cn(
                 'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
                 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
-                collapsed && 'justify-center px-2'
+                isCollapsed && 'justify-center px-2'
               )}
               activeClassName="!bg-sidebar-accent !text-sidebar-foreground"
             >
               <Settings className="w-5 h-5 shrink-0" />
-              {!collapsed && <span>Settings</span>}
+              {!isCollapsed && <span>Settings</span>}
             </NavLink>
           </div>
         )}
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn(
-            'flex items-center w-full px-3 py-3 text-muted-foreground hover:text-sidebar-foreground transition-colors',
-            collapsed ? 'justify-center' : 'justify-end pr-5'
-          )}
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+        {!isMobile && (
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={cn(
+              'flex items-center w-full px-3 py-3 text-muted-foreground hover:text-sidebar-foreground transition-colors',
+              isCollapsed ? 'justify-center' : 'justify-end pr-5'
+            )}
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        )}
       </div>
     </aside>
   );
