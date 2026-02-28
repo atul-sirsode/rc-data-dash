@@ -1,10 +1,12 @@
-import { ReactNode } from 'react';
-import { LogOut, RefreshCw, Bell } from 'lucide-react';
+import { ReactNode, useState } from 'react';
+import { LogOut, RefreshCw, Bell, Menu } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { SessionTimer } from '@/components/SessionTimer';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -14,6 +16,8 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutProps) {
   const { logout, username } = useAuth();
+  const isMobile = useIsMobile();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const initials = username
     ? username.slice(0, 2).toUpperCase()
@@ -21,14 +25,35 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
 
   return (
     <div className="flex min-h-screen w-full">
-      <AppSidebar />
+      {/* Desktop sidebar */}
+      {!isMobile && <AppSidebar />}
+
+      {/* Mobile sidebar sheet */}
+      {isMobile && (
+        <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+          <SheetContent side="left" className="p-0 w-64 bg-sidebar-background border-sidebar-border">
+            <SheetTitle className="sr-only">Navigation</SheetTitle>
+            <AppSidebar onNavigate={() => setMobileNavOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      )}
 
       <div className="flex-1 flex flex-col min-h-screen min-w-0 bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-border bg-card">
-          <div className="flex items-center justify-between h-full px-4 md:px-6">
-            {/* Left: Welcome */}
+        <header className="sticky top-0 z-30 h-14 md:h-16 shrink-0 border-b border-border bg-card">
+          <div className="flex items-center justify-between h-full px-3 md:px-6">
+            {/* Left: Hamburger + Welcome */}
             <div className="flex items-center gap-2 min-w-0">
+              {isMobile && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-muted-foreground"
+                  onClick={() => setMobileNavOpen(true)}
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              )}
               {username && (
                 <span className="text-sm text-muted-foreground truncate">
                   Welcome, <span className="font-semibold text-foreground">{username}</span>
@@ -37,18 +62,20 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-2 md:gap-3 shrink-0">
-              <SessionTimer />
+            <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
+              <div className="hidden sm:block">
+                <SessionTimer />
+              </div>
 
               {showNewUpload && onNewUpload && (
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={onNewUpload}
-                  className="gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted md:gap-2 md:px-3 md:w-auto"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  <span className="hidden sm:inline">New Upload</span>
+                  <span className="hidden md:inline text-sm">New Upload</span>
                 </Button>
               )}
 
@@ -56,14 +83,14 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
                 <Bell className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center gap-2 pl-2 md:pl-3 border-l border-border">
-                <Avatar className="h-8 w-8">
+              <div className="flex items-center gap-1.5 pl-1.5 md:pl-3 border-l border-border">
+                <Avatar className="h-7 w-7 md:h-8 md:w-8">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 {username && (
-                  <span className="text-sm font-medium text-foreground hidden sm:inline">
+                  <span className="text-sm font-medium text-foreground hidden md:inline">
                     {username}
                   </span>
                 )}
@@ -71,10 +98,10 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
                   variant="ghost"
                   size="sm"
                   onClick={logout}
-                  className="gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted ml-1"
+                  className="gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted ml-0.5"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden sm:inline">Logout</span>
+                  <span className="hidden md:inline">Logout</span>
                 </Button>
               </div>
             </div>
@@ -82,7 +109,7 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-6 overflow-auto min-w-0">
+        <main className="flex-1 p-3 md:p-6 overflow-auto min-w-0">
           <div className="w-full max-w-full">
             {children}
           </div>

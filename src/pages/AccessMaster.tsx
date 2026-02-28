@@ -45,7 +45,7 @@ export default function AccessMaster() {
         </motion.div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-4 lg:grid-cols-7 w-full">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="roles">Roles</TabsTrigger>
             <TabsTrigger value="permissions">Permissions</TabsTrigger>
