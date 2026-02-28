@@ -18,6 +18,7 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
   const { logout, username } = useAuth();
   const isMobile = useIsMobile();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const initials = username
     ? username.slice(0, 2).toUpperCase()
@@ -26,14 +27,14 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
   return (
     <div className="flex min-h-screen w-full">
       {/* Desktop sidebar */}
-      {!isMobile && <AppSidebar />}
+      {!isMobile && <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />}
 
       {/* Mobile sidebar sheet */}
       {isMobile && (
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetContent side="left" className="p-0 w-64 bg-sidebar-background border-sidebar-border">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <AppSidebar onNavigate={() => setMobileNavOpen(false)} />
+            <AppSidebar onNavigate={() => setMobileNavOpen(false)} collapsed={false} />
           </SheetContent>
         </Sheet>
       )}
