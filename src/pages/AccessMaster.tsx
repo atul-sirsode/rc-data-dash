@@ -22,7 +22,11 @@ import {
 
 export default function AccessMaster() {
   const { toast } = useToast();
-  const [tab, setTab] = useState('users');
+  const [tab, setTabState] = useState(() => sessionStorage.getItem('accessmaster-tab') || 'users');
+  const setTab = (value: string) => {
+    setTabState(value);
+    sessionStorage.setItem('accessmaster-tab', value);
+  };
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => { seedDefaults(); }, []);
