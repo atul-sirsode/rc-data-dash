@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import FastTag from "./pages/FastTag";
 import FastTagHistory from "./pages/FastTagHistory";
+import FastTagUpload from "./pages/FastTagUpload";
 import Settings from "./pages/Settings";
 import UserMaster from "./pages/UserMaster";
 import AccessMaster from "./pages/AccessMaster";
@@ -33,6 +34,7 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/fast-tag" element={<ProtectedRoute><FastTag /></ProtectedRoute>} />
       <Route path="/fast-tag/history" element={<ProtectedRoute><FastTagHistory /></ProtectedRoute>} />
+      <Route path="/fast-tag-upload" element={<ProtectedRoute><FastTagUpload /></ProtectedRoute>} />
       <Route path="/user-master" element={<ProtectedRoute><UserMaster /></ProtectedRoute>} />
       <Route path="/access-master" element={<ProtectedRoute><AccessMaster /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
