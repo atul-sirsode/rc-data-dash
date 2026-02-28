@@ -1,0 +1,6 @@
+Changes made today (2026-02-28):
+
+src/pages/FastTag.tsx
+src/pages/FastTagUpload.tsx
+src/lib/db.ts
+src/lib/fasttag-pdf.ts
