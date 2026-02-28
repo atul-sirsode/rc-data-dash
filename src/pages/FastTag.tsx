@@ -147,7 +147,18 @@ function generateTxnId(): string {
 
 export default function FastTag() {
   const banks = getEnabledBanks();
-  const [selectedBank, setSelectedBank] = useState<string | null>(null);
+  const [selectedBank, setSelectedBankState] = useState<string | null>(() => {
+    return sessionStorage.getItem('fasttag-selected-bank');
+  });
+
+  const setSelectedBank = (bank: string | null) => {
+    setSelectedBankState(bank);
+    if (bank) {
+      sessionStorage.setItem('fasttag-selected-bank', bank);
+    } else {
+      sessionStorage.removeItem('fasttag-selected-bank');
+    }
+  };
   const [submitted, setSubmitted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [fetchingDetails, setFetchingDetails] = useState(false);
