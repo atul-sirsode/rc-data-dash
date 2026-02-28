@@ -1,4 +1,4 @@
-import { Car, CreditCard, Settings, ChevronLeft, ChevronRight, Users, ShieldCheck } from 'lucide-react';
+import { Car, CreditCard, ChevronLeft, ChevronRight, Users, ShieldCheck } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserAccess } from '@/lib/admin-settings';
@@ -10,7 +10,6 @@ const menuItems = [
   { id: 'fast-tag', label: 'Fast Tag', icon: CreditCard, path: '/fast-tag' },
   { id: 'user-master', label: 'User Master', icon: Users, path: '/user-master' },
   { id: 'access-master', label: 'Access Master', icon: ShieldCheck, path: '/access-master' },
-  { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 interface AppSidebarProps {
@@ -34,10 +33,8 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
   const userAccess = username ? getUserAccess(username) : null;
   const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'user-master', 'access-master', 'settings'];
 
-  const mainMenus = menuItems.filter(item => item.id !== 'settings' && item.id !== 'user-master' && allowedMenus.includes(item.id));
+  const mainMenus = menuItems.filter(item => item.id !== 'user-master' && allowedMenus.includes(item.id));
   const adminMenus = menuItems.filter(item => (item.id === 'user-master' || item.id === 'access-master') && allowedMenus.includes(item.id));
-  const settingsMenu = menuItems.find(item => item.id === 'settings');
-  const showSettings = allowedMenus.includes('settings');
 
   return (
     <aside
@@ -118,26 +115,8 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
         )}
       </nav>
 
-      {/* Bottom: Settings + Collapse */}
+      {/* Bottom: Collapse */}
       <div className="mt-auto border-t border-sidebar-border">
-        {showSettings && settingsMenu && (
-          <div className="px-3 py-2">
-            <NavLink
-              to={settingsMenu.path}
-              onClick={handleNavClick}
-              className={cn(
-                'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
-                'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
-                isCollapsed && 'justify-center px-2'
-              )}
-              activeClassName="!bg-sidebar-accent !text-sidebar-foreground"
-            >
-              <Settings className="w-5 h-5 shrink-0" />
-              {!isCollapsed && <span>Settings</span>}
-            </NavLink>
-          </div>
-        )}
-
         {!isMobile && (
           <button
             onClick={() => onCollapsedChange?.(!collapsed)}
