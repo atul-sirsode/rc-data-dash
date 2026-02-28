@@ -366,8 +366,8 @@ export default function FastTag() {
     const updated = recalcBalances([...history, ...newEntries]);
     setHistory(updated);
 
-    // Uncheck added tolls
-    setTolls(prev => prev.map(t => t.selected ? { ...t, selected: false } : t));
+    // Remove added tolls from the list
+    setTolls(prev => prev.filter(t => !t.selected));
     toast({ title: `${selectedTolls.length} toll(s) added to history` });
   };
 
