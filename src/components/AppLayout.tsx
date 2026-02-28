@@ -1,12 +1,12 @@
 import { ReactNode, useState } from 'react';
-import { LogOut, RefreshCw, Bell, Menu } from 'lucide-react';
+import { LogOut, RefreshCw, Bell, Menu, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { SessionTimer } from '@/components/SessionTimer';
 import { AppSidebar } from '@/components/AppSidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -17,6 +17,7 @@ interface AppLayoutProps {
 export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutProps) {
   const { logout, username } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -64,9 +65,6 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
 
             {/* Right: Actions */}
             <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
-              <div className="hidden sm:block">
-                <SessionTimer />
-              </div>
 
               {showNewUpload && onNewUpload && (
                 <Button
@@ -79,6 +77,13 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
                   <span className="hidden md:inline text-sm">New Upload</span>
                 </Button>
               )}
+
+              <button
+                onClick={() => navigate('/settings')}
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
 
               <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                 <Bell className="w-5 h-5" />
