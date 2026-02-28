@@ -2,7 +2,6 @@ import { Car, CreditCard, Settings, ChevronLeft, ChevronRight, Users, ShieldChec
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserAccess } from '@/lib/admin-settings';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -16,24 +15,21 @@ const menuItems = [
 
 interface AppSidebarProps {
   onNavigate?: () => void;
-  onMenuSelect?: () => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function AppSidebar({ onNavigate, onMenuSelect }: AppSidebarProps) {
+export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }: AppSidebarProps) {
   const { username } = useAuth();
   const isMobile = useIsMobile();
-  const [collapsed, setCollapsed] = useState(false);
   const isCollapsed = isMobile ? false : collapsed;
 
   const handleNavClick = () => {
     onNavigate?.();
     if (!isMobile) {
-      setCollapsed(true);
-      onMenuSelect?.();
+      onCollapsedChange?.(true);
     }
   };
-
-
 
   const userAccess = username ? getUserAccess(username) : null;
   const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'user-master', 'access-master', 'settings'];
@@ -144,7 +140,7 @@ export function AppSidebar({ onNavigate, onMenuSelect }: AppSidebarProps) {
 
         {!isMobile && (
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => onCollapsedChange?.(!collapsed)}
             className={cn(
               'flex items-center w-full px-3 py-3 text-muted-foreground hover:text-sidebar-foreground transition-colors',
               isCollapsed ? 'justify-center' : 'justify-end pr-5'
