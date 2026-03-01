@@ -31,3 +31,13 @@ src/lib/fasttag-pdf.ts (new)
 supabase/ (migration for fasttag_sessions & fasttag_history tables)
 src/integrations/supabase/client.ts (auto-generated)
 src/integrations/supabase/types.ts (auto-generated)
+
+=== FastTag Reports Page ===
+src/models/fasttag-report.ts (new)
+src/services/fasttag-report-service.ts (new)
+src/lib/fasttag-report-pdf.ts (new)
+src/pages/FastTagReports.tsx (new)
+src/components/AppSidebar.tsx
+src/lib/admin-settings.ts
+src/App.tsx
+changes.txt
