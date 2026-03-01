@@ -60,3 +60,8 @@ src/App.tsx - added Home route at /, moved RC Verification to /rc-verification
 src/components/AppSidebar.tsx - added Home menu (visible to all users), logo click navigates to home
 src/lib/admin-settings.ts - added 'home' to default allowed menus
 changes.txt
+
+=== Responsive Footer (2026-03-01) ===
+src/components/AppFooter.tsx (new) - footer with Contact Us, License, and About sections
+src/components/AppLayout.tsx - added footer to main layout
+changes.txt
