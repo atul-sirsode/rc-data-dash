@@ -1,4 +1,4 @@
-import { Car, CreditCard, ChevronLeft, ChevronRight, Users, ShieldCheck, Upload, FileBarChart, Wallet } from 'lucide-react';
+import { Home, Car, CreditCard, ChevronLeft, ChevronRight, Users, ShieldCheck, Upload, FileBarChart, Wallet } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserAccess } from '@/lib/admin-settings';
@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const menuItems = [
-  { id: 'rc-verification', label: 'RC Verification', icon: Car, path: '/' },
+  { id: 'home', label: 'Home', icon: Home, path: '/' },
+  { id: 'rc-verification', label: 'RC Verification', icon: Car, path: '/rc-verification' },
   { id: 'fast-tag', label: 'Fast Tag', icon: CreditCard, path: '/fast-tag' },
   { id: 'fast-tag-upload', label: 'FastTag Upload', icon: Upload, path: '/fast-tag-upload' },
   { id: 'fast-tag-reports', label: 'FastTag Reports', icon: FileBarChart, path: '/fast-tag-reports' },
@@ -34,7 +35,7 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
   };
 
   const userAccess = username ? getUserAccess(username) : null;
-  const allowedMenus = userAccess?.allowedMenus || ['rc-verification', 'fast-tag', 'fast-tag-upload', 'fast-tag-reports', 'user-master', 'access-master', 'settings'];
+  const allowedMenus = userAccess?.allowedMenus || ['home', 'rc-verification', 'fast-tag', 'fast-tag-upload', 'fast-tag-reports', 'user-master', 'access-master', 'settings'];
 
   const adminIds = ['user-master', 'access-master', 'manage-subscription'];
   const mainMenus = menuItems.filter(item => !adminIds.includes(item.id) && allowedMenus.includes(item.id));

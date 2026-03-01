@@ -21,7 +21,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
       username: 'admin',
       password: 'admin123',
       bypassOTP: true,
-      allowedMenus: ['rc-verification', 'fast-tag', 'fast-tag-upload', 'fast-tag-reports', 'manage-subscription', 'user-master', 'settings'],
+      allowedMenus: ['home', 'rc-verification', 'fast-tag', 'fast-tag-upload', 'fast-tag-reports', 'manage-subscription', 'user-master', 'settings'],
       isAdmin: true,
     },
   ],
