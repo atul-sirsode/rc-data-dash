@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import { SubscriptionBanner } from '@/components/SubscriptionBanner';
+import { AppFooter } from '@/components/AppFooter';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -129,6 +130,7 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
             {children}
           </div>
         </main>
+        <AppFooter />
       </div>
     </div>
   );
