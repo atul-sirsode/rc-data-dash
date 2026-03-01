@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
+import { SubscriptionBanner } from '@/components/SubscriptionBanner';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -123,6 +124,7 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
 
         {/* Main Content */}
         <main className="flex-1 p-3 md:p-6 overflow-auto min-w-0">
+          <SubscriptionBanner />
           <div className="w-full max-w-full">
             {children}
           </div>
