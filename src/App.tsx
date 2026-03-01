@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import FastTag from "./pages/FastTag";
@@ -33,7 +34,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/rc-verification" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/fast-tag" element={<ProtectedRoute><FastTag /></ProtectedRoute>} />
       <Route path="/fast-tag/history" element={<ProtectedRoute><FastTagHistory /></ProtectedRoute>} />
       <Route path="/fast-tag-upload" element={<ProtectedRoute><FastTagUpload /></ProtectedRoute>} />
