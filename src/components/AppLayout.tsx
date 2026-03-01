@@ -9,6 +9,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import { SubscriptionBanner } from '@/components/SubscriptionBanner';
 import { AppFooter } from '@/components/AppFooter';
+import { useTheme } from '@/components/ThemeProvider';
+import { Sun, Moon } from 'lucide-react';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -20,6 +22,7 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
   const { logout, username } = useAuth();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -94,10 +97,17 @@ export function AppLayout({ children, showNewUpload, onNewUpload }: AppLayoutPro
                 <Settings className="w-5 h-5" />
               </button>
 
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+
               <button className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                 <Bell className="w-5 h-5" />
               </button>
-
               <div className="flex items-center gap-1.5 pl-1.5 md:pl-3 border-l border-border">
                 <Avatar className="h-7 w-7 md:h-8 md:w-8">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
