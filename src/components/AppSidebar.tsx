@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getUserAccess } from '@/lib/admin-settings';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 const menuItems = [
   { id: 'home', label: 'Home', icon: Home, path: '/' },
@@ -25,6 +26,7 @@ interface AppSidebarProps {
 export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }: AppSidebarProps) {
   const { username } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const isCollapsed = isMobile ? false : collapsed;
 
   const handleNavClick = () => {
@@ -38,7 +40,8 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
   const allowedMenus = userAccess?.allowedMenus || ['home', 'rc-verification', 'fast-tag', 'fast-tag-upload', 'fast-tag-reports', 'user-master', 'access-master', 'settings'];
 
   const adminIds = ['user-master', 'access-master', 'manage-subscription'];
-  const mainMenus = menuItems.filter(item => !adminIds.includes(item.id) && allowedMenus.includes(item.id));
+  const alwaysVisibleIds = ['home'];
+  const mainMenus = menuItems.filter(item => !adminIds.includes(item.id) && (alwaysVisibleIds.includes(item.id) || allowedMenus.includes(item.id)));
   const adminMenus = menuItems.filter(item => adminIds.includes(item.id) && allowedMenus.includes(item.id));
 
   return (
@@ -52,9 +55,11 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
     >
       {/* Logo */}
       <div className={cn(
-        'flex items-center h-16 shrink-0 px-4',
+        'flex items-center h-16 shrink-0 px-4 cursor-pointer',
         isCollapsed ? 'justify-center' : 'gap-3'
-      )}>
+      )}
+        onClick={() => navigate('/')}
+      >
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
           <Car className="w-5 h-5 text-primary-foreground" />
         </div>

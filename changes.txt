@@ -53,3 +53,10 @@ src/components/AppLayout.tsx
 src/lib/admin-settings.ts
 src/App.tsx
 changes.txt
+
+=== Home Page + Navigation Update (2026-03-01) ===
+src/pages/Home.tsx (new) - default landing page after login
+src/App.tsx - added Home route at /, moved RC Verification to /rc-verification
+src/components/AppSidebar.tsx - added Home menu (visible to all users), logo click navigates to home
+src/lib/admin-settings.ts - added 'home' to default allowed menus
+changes.txt
