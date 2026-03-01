@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { DateRange } from 'react-day-picker';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -24,11 +23,12 @@ export default function FastTagReports() {
   const bankOptions = useMemo(() => banks.map(b => ({ value: b.id, label: b.name })), [banks]);
 
   const [selectedBank, setSelectedBank] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
-  const [dateOpen, setDateOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const [startOpen, setStartOpen] = useState(false);
+  const [endOpen, setEndOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<FastTagReportRow[]>([]);
   const [searched, setSearched] = useState(false);
@@ -37,15 +37,16 @@ export default function FastTagReports() {
 
   const handleSearch = async () => {
     if (!selectedBank) { toast({ title: 'Please select a bank', variant: 'destructive' }); return; }
-    if (!dateRange?.from || !dateRange?.to) { toast({ title: 'Please select date range', variant: 'destructive' }); return; }
+    if (!startDate || !endDate) { toast({ title: 'Please select date range', variant: 'destructive' }); return; }
+    if (endDate < startDate) { toast({ title: 'End date must be after start date', variant: 'destructive' }); return; }
 
     setLoading(true);
     try {
       const data = await fastTagReportService.getReport({
         bankId: selectedBank,
         bankName: selectedBankName,
-        startDate: dateRange.from,
-        endDate: dateRange.to,
+        startDate,
+        endDate,
       });
       setRows(data);
       setSearched(true);
@@ -59,7 +60,7 @@ export default function FastTagReports() {
 
   const handleExportPDF = () => {
     if (rows.length === 0) { toast({ title: 'No data to export', variant: 'destructive' }); return; }
-    generateReportPDF({ bankId: selectedBank, bankName: selectedBankName, startDate: dateRange!.from!, endDate: dateRange!.to! }, rows);
+    generateReportPDF({ bankId: selectedBank, bankName: selectedBankName, startDate: startDate!, endDate: endDate! }, rows);
   };
 
   const totalTransactions = rows.reduce((sum, r) => sum + r.transactions.length, 0);
@@ -82,39 +83,50 @@ export default function FastTagReports() {
         <Card>
           <CardHeader><CardTitle className="text-lg">Filters</CardTitle></CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
               <div className="space-y-2">
                 <Label>Select Bank</Label>
                 <SearchableSelect options={bankOptions} value={selectedBank} onValueChange={setSelectedBank} placeholder="Search & select bank" />
               </div>
               <div className="space-y-2">
-                <Label>Date Range</Label>
-                <Popover open={dateOpen} onOpenChange={setDateOpen}>
+                <Label>Start Date</Label>
+                <Popover open={startOpen} onOpenChange={setStartOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !dateRange?.from && 'text-muted-foreground')}>
+                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !startDate && 'text-muted-foreground')}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange?.from ? (
-                        dateRange.to ? (
-                          <span>{format(dateRange.from, 'dd MMM yy')} – {format(dateRange.to, 'dd MMM yy')}</span>
-                        ) : (
-                          format(dateRange.from, 'dd MMM yyyy')
-                        )
-                      ) : (
-                        'Pick date range'
-                      )}
+                      {startDate ? format(startDate, 'dd MMM yyyy') : 'Pick date'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                      mode="range"
-                      selected={dateRange}
-                      onSelect={(range) => {
-                        if (range?.from && range?.to && range.to < range.from) return;
-                        setDateRange(range);
-                        if (range?.from && range?.to) setDateOpen(false);
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(d) => {
+                        setStartDate(d);
+                        setStartOpen(false);
+                        if (d && endDate && endDate < d) setEndDate(undefined);
                       }}
-                      numberOfMonths={2}
                       disabled={(date) => date > new Date()}
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Popover open={endOpen} onOpenChange={setEndOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !endDate && 'text-muted-foreground')}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, 'dd MMM yyyy') : 'Pick date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(d) => { setEndDate(d); setEndOpen(false); }}
+                      disabled={(date) => date > new Date() || (startDate ? date < startDate : false)}
                       className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
