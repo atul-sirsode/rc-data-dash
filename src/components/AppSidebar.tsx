@@ -5,6 +5,8 @@ import { getUserAccess } from '@/lib/admin-settings';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
+import { useSubscriptionExpired } from '@/hooks/use-subscription-status';
+import { useToast } from '@/hooks/use-toast';
 
 const menuItems = [
   { id: 'home', label: 'Home', icon: Home, path: '/' },
@@ -28,8 +30,19 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const isCollapsed = isMobile ? false : collapsed;
+  const subscriptionExpired = useSubscriptionExpired();
+  const { toast } = useToast();
 
-  const handleNavClick = () => {
+  const handleNavClick = (e: React.MouseEvent, itemId: string) => {
+    if (subscriptionExpired && itemId !== 'home') {
+      e.preventDefault();
+      toast({
+        title: 'Subscription Expired',
+        description: 'Please subscribe to continue using this feature.',
+        variant: 'destructive',
+      });
+      return;
+    }
     onNavigate?.();
     if (!isMobile) {
       onCollapsedChange?.(true);
@@ -84,10 +97,12 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
             key={item.id}
             to={item.path}
             end={item.path === '/'}
-            onClick={handleNavClick}
+            onClick={(e) => handleNavClick(e, item.id)}
             className={cn(
               'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
-              'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
+              subscriptionExpired && item.id !== 'home'
+                ? 'text-muted-foreground/50 cursor-not-allowed'
+                : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
               isCollapsed && 'justify-center px-2'
             )}
             activeClassName="!bg-sidebar-accent !text-sidebar-foreground"
@@ -109,10 +124,12 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
               <NavLink
                 key={item.id}
                 to={item.path}
-                onClick={handleNavClick}
+                onClick={(e) => handleNavClick(e, item.id)}
                 className={cn(
                   'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
-                  'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
+                  subscriptionExpired
+                    ? 'text-muted-foreground/50 cursor-not-allowed'
+                    : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent',
                   isCollapsed && 'justify-center px-2'
                 )}
                 activeClassName="!bg-sidebar-accent !text-sidebar-foreground"
