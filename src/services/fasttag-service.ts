@@ -1,18 +1,14 @@
 /**
  * Unified FastTag Service
  * 
- * Delegates to either Supabase or MongoDB repository based on the
- * active database provider. All UI components should use this service
- * instead of importing repositories directly.
+ * Uses MongoDB repository via REST API for all FastTag operations.
  */
 
-import { getDbProvider } from '@/config/db-provider';
-import { fastTagRepo } from '@/lib/db';
 import { mongoFastTagRepo } from '@/services/mongodb-fasttag-repository';
 import type { FastTagSessionData, FastTagSessionRecord, FastTagHistoryData, FastTagHistoryRecord } from '@/lib/db';
 import type { MongoFastTagDocument, MongoFastTagCreateInput, MongoFastTagTransaction, MongoFastTagFilter } from '@/models/mongodb-fasttag';
 
-// ─── Adapter helpers: Mongo ↔ Supabase shape ────────────────────
+// ─── Adapter helpers: Mongo ↔ App shape ─────────────────────────
 
 function mongoDocToSession(doc: MongoFastTagDocument): FastTagSessionRecord {
   return {
@@ -37,12 +33,12 @@ function mongoTxnToHistory(txn: MongoFastTagTransaction, sessionId: string): Fas
   return {
     id: txn.id,
     session_id: sessionId,
-    processing_time: txn.processingTime || null,
-    transaction_time: txn.transactionTime || null,
+    processing_time: txn.processingTime || undefined,
+    transaction_time: txn.transactionTime || undefined,
     nature: txn.nature as 'Debit' | 'Credit',
     amount: parseFloat(txn.amount) || 0,
     closing_balance: txn.closingBalance || 0,
-    description: txn.description || null,
+    description: txn.description || undefined,
     txn_id: txn.id,
     created_at: txn.transactionTime || new Date().toISOString(),
   };
@@ -72,104 +68,68 @@ function historyDataToMongoTxn(entry: FastTagHistoryData): MongoFastTagTransacti
   };
 }
 
-// ─── Unified Service ─────────────────────────────────────────────
+// ─── Service ─────────────────────────────────────────────────────
 
 export class FastTagService {
   // ── Session operations ──
 
   async createSession(data: FastTagSessionData): Promise<FastTagSessionRecord> {
-    if (getDbProvider() === 'mongodb') {
-      const doc = await mongoFastTagRepo.create(sessionDataToMongoInput(data));
-      return mongoDocToSession(doc);
-    }
-    return fastTagRepo.createSession(data);
+    const doc = await mongoFastTagRepo.create(sessionDataToMongoInput(data));
+    return mongoDocToSession(doc);
   }
 
   async updateSession(id: string, data: Partial<FastTagSessionData>): Promise<FastTagSessionRecord> {
-    if (getDbProvider() === 'mongodb') {
-      const doc = await mongoFastTagRepo.update(id, {
-        ownerName: data.customer_name || data.truck_owner_name,
-        mobile: data.customer_mobile,
-        carModel: data.truck_number,
-        bank: data.bank_name || data.bank_id,
-        openingBalance: data.opening_balance,
-      });
-      return mongoDocToSession(doc);
-    }
-    return fastTagRepo.updateSession(id, data);
+    const doc = await mongoFastTagRepo.update(id, {
+      ownerName: data.customer_name || data.truck_owner_name,
+      mobile: data.customer_mobile,
+      carModel: data.truck_number,
+      bank: data.bank_name || data.bank_id,
+      openingBalance: data.opening_balance,
+    });
+    return mongoDocToSession(doc);
   }
 
   async getSession(id: string): Promise<FastTagSessionRecord | null> {
-    if (getDbProvider() === 'mongodb') {
-      const doc = await mongoFastTagRepo.getById(id);
-      return doc ? mongoDocToSession(doc) : null;
-    }
-    return fastTagRepo.getSession(id);
+    const doc = await mongoFastTagRepo.getById(id);
+    return doc ? mongoDocToSession(doc) : null;
   }
 
   async getSessions(filter?: MongoFastTagFilter): Promise<FastTagSessionRecord[]> {
-    if (getDbProvider() === 'mongodb') {
-      const docs = await mongoFastTagRepo.getAll(filter);
-      return docs.map(mongoDocToSession);
-    }
-    return fastTagRepo.getSessions();
+    const docs = await mongoFastTagRepo.getAll(filter);
+    return docs.map(mongoDocToSession);
   }
 
   // ── Transaction / History operations ──
 
   async createHistoryEntries(sessionId: string, entries: FastTagHistoryData[]): Promise<FastTagHistoryRecord[]> {
-    if (getDbProvider() === 'mongodb') {
-      const results: FastTagHistoryRecord[] = [];
-      for (const entry of entries) {
-        const doc = await mongoFastTagRepo.addTransaction(sessionId, historyDataToMongoTxn(entry));
-        const lastTxn = doc.transactions[doc.transactions.length - 1];
-        if (lastTxn) results.push(mongoTxnToHistory(lastTxn, sessionId));
-      }
-      return results;
+    const results: FastTagHistoryRecord[] = [];
+    for (const entry of entries) {
+      const doc = await mongoFastTagRepo.addTransaction(sessionId, historyDataToMongoTxn(entry));
+      const lastTxn = doc.transactions[doc.transactions.length - 1];
+      if (lastTxn) results.push(mongoTxnToHistory(lastTxn, sessionId));
     }
-    return fastTagRepo.createHistoryEntries(entries);
+    return results;
   }
 
   async getHistoryBySession(sessionId: string): Promise<FastTagHistoryRecord[]> {
-    if (getDbProvider() === 'mongodb') {
-      const doc = await mongoFastTagRepo.getById(sessionId);
-      if (!doc) return [];
-      return doc.transactions.map(txn => mongoTxnToHistory(txn, sessionId));
-    }
-    return fastTagRepo.getHistoryBySession(sessionId);
+    const doc = await mongoFastTagRepo.getById(sessionId);
+    if (!doc) return [];
+    return doc.transactions.map(txn => mongoTxnToHistory(txn, sessionId));
   }
 
   async deleteHistoryEntry(sessionId: string, entryId: string): Promise<void> {
-    if (getDbProvider() === 'mongodb') {
-      await mongoFastTagRepo.removeTransaction(sessionId, entryId);
-      return;
-    }
-    return fastTagRepo.deleteHistoryEntry(entryId);
+    await mongoFastTagRepo.removeTransaction(sessionId, entryId);
   }
 
   // ── Report-style queries ──
 
   async getSessionsByBankAndDateRange(bankId: string, startDate: Date, endDate: Date): Promise<FastTagSessionRecord[]> {
-    if (getDbProvider() === 'mongodb') {
-      const docs = await mongoFastTagRepo.getAll({
-        bank: bankId,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      });
-      return docs.map(mongoDocToSession);
-    }
-    // Supabase path - delegate to existing report service
-    const { supabase } = await import('@/integrations/supabase/client');
-    const { data, error } = await supabase
-      .from('fasttag_sessions')
-      .select('*')
-      .eq('bank_id', bankId)
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
-      .order('created_at', { ascending: false });
-
-    if (error) throw new Error(error.message);
-    return (data || []) as unknown as FastTagSessionRecord[];
+    const docs = await mongoFastTagRepo.getAll({
+      bank: bankId,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
+    return docs.map(mongoDocToSession);
   }
 }
 
