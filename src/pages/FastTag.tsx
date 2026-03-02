@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2, Car, Bus, Bike, Caravan, Trash2, FileDown } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { fastTagService } from '@/services/fasttag-service';
+import { mongoFastTagRepo } from '@/services/mongodb-fasttag-repository';
 import { generateFastTagPDF } from '@/lib/fasttag-pdf';
 import { getEnabledBanks } from '@/lib/admin-settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -222,6 +223,7 @@ export default function FastTag() {
     }
     setFetchingDetails(true);
     try {
+      // Fetch RC details
       let data;
       try {
         const response = await verifyRC(formData.vehicleNumber.trim());
@@ -239,6 +241,46 @@ export default function FastTag() {
         }));
         setDetailsFetched(true);
         toast({ title: 'Vehicle details fetched successfully' });
+      }
+
+      // Fetch existing MongoDB data for this vehicle + bank
+      try {
+        const existingDocs = await mongoFastTagRepo.getAll({
+          vehicleNumber: formData.vehicleNumber.trim(),
+          bank: selectedBank || undefined,
+        });
+        if (existingDocs.length > 0) {
+          const doc = existingDocs[0];
+          // Pre-fill form fields from existing document
+          if (doc.openingBalance) {
+            setFormData(prev => ({
+              ...prev,
+              openingBalance: String(doc.openingBalance),
+              customerName: doc.ownerName || prev.customerName,
+              customerMobile: doc.mobile || prev.customerMobile,
+              truckNumber: doc.carModel || prev.truckNumber,
+              truckOwnerName: doc.ownerName || prev.truckOwnerName,
+            }));
+          }
+          // Map existing transactions to history
+          if (doc.transactions && doc.transactions.length > 0) {
+            const mappedHistory: HistoryEntry[] = doc.transactions.map(txn => ({
+              id: txn.id || `hist-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              processingTime: txn.processingTime || '',
+              transactionTime: txn.transactionTime || '',
+              nature: (txn.nature as 'Debit' | 'Credit') || 'Debit',
+              amount: txn.amount || '0',
+              closingBalance: '0',
+              description: txn.description || '',
+              txnId: txn.id || generateTxnId(),
+            }));
+            const balanced = recalcBalances(mappedHistory);
+            setHistory(balanced);
+            toast({ title: `Loaded ${balanced.length} existing transaction(s)` });
+          }
+        }
+      } catch (mongoErr) {
+        console.warn('Could not fetch existing MongoDB data:', mongoErr);
       }
     } catch (err) {
       toast({ title: 'Failed to fetch vehicle details', variant: 'destructive' });
