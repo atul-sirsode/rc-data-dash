@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
 import { getEnabledBanks } from '@/lib/admin-settings';
 import * as XLSX from 'xlsx';
@@ -734,8 +735,19 @@ export default function FastTagUpload() {
                             {REQUIRED_COLUMNS.map(col => (
                               <TableCell key={col} className="text-sm whitespace-nowrap">{row.data[col] || '—'}</TableCell>
                             ))}
-                            <TableCell className="text-sm text-destructive max-w-[250px] truncate">
-                              {row._failReason || '—'}
+                            <TableCell className="text-sm text-destructive max-w-[250px]">
+                              {row._failReason ? (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="block truncate cursor-default">{row._failReason}</span>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="max-w-xs text-sm">
+                                      {row._failReason}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ) : '—'}
                             </TableCell>
                             <TableCell>
                               {row._failReason === INSUFFICIENT_BALANCE_REASON && (
