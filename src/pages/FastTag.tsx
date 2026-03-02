@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CreditCard, ChevronRight, Clock, CheckCircle2, ExternalLink, CalendarIcon, User, Phone, Truck, IndianRupee, Pencil, Plus, MapPin, Loader2, Car, Bus, Bike, Caravan, Trash2, FileDown } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
-import { fastTagRepo } from '@/lib/db';
+import { fastTagService } from '@/services/fasttag-service';
 import { generateFastTagPDF } from '@/lib/fasttag-pdf';
 import { getEnabledBanks } from '@/lib/admin-settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -429,7 +429,7 @@ export default function FastTag() {
     setSavingSession(true);
     try {
       // 1. Save session to DB
-      const session = await fastTagRepo.createSession({
+      const session = await fastTagService.createSession({
         bank_id: selectedBank!,
         bank_name: selectedBankName,
         vehicle_number: formData.vehicleNumber,
@@ -453,7 +453,7 @@ export default function FastTag() {
         description: h.description,
         txn_id: h.txnId,
       }));
-      await fastTagRepo.createHistoryEntries(historyData);
+      await fastTagService.createHistoryEntries(session.id, historyData);
 
       // 3. Generate PDF
       generateFastTagPDF(
