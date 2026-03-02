@@ -1,12 +1,15 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, FileSpreadsheet, Info, AlertCircle, CheckCircle2, X, Loader2, Download, RotateCcw, Printer, FileDown } from 'lucide-react';
+import { Upload, FileSpreadsheet, Info, AlertCircle, CheckCircle2, X, Loader2, Download, RotateCcw, Printer, FileDown, Pencil } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { getEnabledBanks } from '@/lib/admin-settings';
@@ -135,8 +138,10 @@ function validateFile(headers: string[], data: Record<string, unknown>[], fileNa
   return { valid: rowErrors.length === 0, data: rows, errors, mappedColumns, fileName };
 }
 
-// Mock toll history generation
-function generateMockTollHistory(row: UploadedRow): TollRecord[] {
+const INSUFFICIENT_BALANCE_REASON = 'Due to insufficient balance this record not processed, please add amount to reProcess';
+
+// Mock toll history generation - returns { records, insufficientBalance }
+function generateMockTollHistory(row: UploadedRow): { records: TollRecord[]; insufficientBalance: boolean } {
   const tolls = [
     'Sarandi Toll Plaza', 'Mandamarri Toll Plaza', 'Basanthnagar Toll',
     'Singarajupally Toll', 'Yerkaram Toll', 'Chillakallu Toll', 'Keesara Fee Plaza',
@@ -146,6 +151,9 @@ function generateMockTollHistory(row: UploadedRow): TollRecord[] {
   const records: TollRecord[] = [];
   for (let i = 0; i < count; i++) {
     const amt = [45, 70, 76, 90, 110][Math.floor(Math.random() * 5)];
+    if (balance - amt < 0) {
+      return { records, insufficientBalance: true };
+    }
     balance -= amt;
     records.push({
       tollName: tolls[Math.floor(Math.random() * tolls.length)],
@@ -156,8 +164,11 @@ function generateMockTollHistory(row: UploadedRow): TollRecord[] {
       closingBalance: String(balance),
       txnId: String(800000000000000 + Math.floor(Math.random() * 99999999999)),
     });
+    if (balance === 0) {
+      return { records, insufficientBalance: true };
+    }
   }
-  return records;
+  return { records, insufficientBalance: false };
 }
 
 function downloadDummyExcel() {
@@ -183,6 +194,10 @@ export default function FastTagUpload() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasProcessed, setHasProcessed] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'failed'>('all');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingRow, setEditingRow] = useState<ProcessedRow | null>(null);
+  const [editAmount, setEditAmount] = useState('');
+  const [editDescription, setEditDescription] = useState('');
 
   const processFile = useCallback(async (file: File) => {
     const ext = file.name.split('.').pop()?.toLowerCase();
@@ -255,16 +270,26 @@ export default function FastTagUpload() {
     setProcessedRows(rows);
 
     // Simulate processing each row
-    const results = await Promise.all(
+    const results: ProcessedRow[] = await Promise.all(
       rows.map(async (row, idx) => {
         await new Promise(r => setTimeout(r, 300 + Math.random() * 700));
-        // Simulate ~70% success rate
-        const isSuccess = Math.random() > 0.3;
+        // Check toll history and balance
+        const tollResult = generateMockTollHistory(row.data);
+        if (tollResult.insufficientBalance) {
+          return {
+            ...row,
+            _status: 'failed' as ProcessStatus,
+            _failReason: INSUFFICIENT_BALANCE_REASON,
+            _tollHistory: tollResult.records,
+          };
+        }
+        // Simulate ~80% success rate for other reasons
+        const isSuccess = Math.random() > 0.2;
         if (isSuccess) {
           return {
             ...row,
             _status: 'success' as ProcessStatus,
-            _tollHistory: generateMockTollHistory(row.data),
+            _tollHistory: tollResult.records,
           };
         } else {
           const reasons = [
@@ -298,14 +323,43 @@ export default function FastTagUpload() {
       await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
       setProcessedRows(prev => prev.map(r => {
         if (r._id !== id) return r;
+        const tollResult = generateMockTollHistory(r.data);
+        if (tollResult.insufficientBalance) {
+          return { ...r, _status: 'failed' as ProcessStatus, _failReason: INSUFFICIENT_BALANCE_REASON, _tollHistory: tollResult.records };
+        }
         const success = Math.random() > 0.4;
         if (success) {
-          return { ...r, _status: 'success' as ProcessStatus, _failReason: undefined, _tollHistory: generateMockTollHistory(r.data) };
+          return { ...r, _status: 'success' as ProcessStatus, _failReason: undefined, _tollHistory: tollResult.records };
         }
         return { ...r, _status: 'failed' as ProcessStatus, _failReason: 'Retry failed: Service unavailable' };
       }));
     }
     toast({ title: 'Retry complete' });
+  };
+
+  const handleEditRow = (row: ProcessedRow) => {
+    setEditingRow(row);
+    setEditAmount(row.data.opening_amount || '');
+    setEditDescription(row._failReason || '');
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRow) return;
+    // Update the amount in the row data
+    setProcessedRows(prev => prev.map(r => {
+      if (r._id !== editingRow._id) return r;
+      return {
+        ...r,
+        data: { ...r.data, opening_amount: editAmount },
+      };
+    }));
+    setEditDialogOpen(false);
+    toast({ title: 'Amount updated', description: 'Re-processing record...' });
+    // Auto re-process this record with updated amount
+    setTimeout(() => {
+      handleRetry([editingRow._id]);
+    }, 300);
   };
 
   const toggleSelect = (id: string) => {
@@ -662,6 +716,7 @@ export default function FastTagUpload() {
                             <TableHead key={col} className="text-xs font-semibold whitespace-nowrap">{COLUMN_LABELS[col]}</TableHead>
                           ))}
                           <TableHead className="text-xs font-semibold whitespace-nowrap">Fail Reason</TableHead>
+                          <TableHead className="text-xs font-semibold whitespace-nowrap">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -682,6 +737,13 @@ export default function FastTagUpload() {
                             <TableCell className="text-sm text-destructive max-w-[250px] truncate">
                               {row._failReason || '—'}
                             </TableCell>
+                            <TableCell>
+                              {row._failReason === INSUFFICIENT_BALANCE_REASON && (
+                                <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => handleEditRow(row)}>
+                                  <Pencil className="w-3 h-3" /> Edit
+                                </Button>
+                              )}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -692,6 +754,46 @@ export default function FastTagUpload() {
             </Card>
           </motion.div>
         )}
+
+        {/* Edit Amount Dialog for Insufficient Balance */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Update Amount & Description</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-rc">RC Number</Label>
+                <Input id="edit-rc" value={editingRow?.data.rc_number || ''} disabled className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-amount">Opening Amount (₹)</Label>
+                <Input
+                  id="edit-amount"
+                  type="number"
+                  value={editAmount}
+                  onChange={(e) => setEditAmount(e.target.value)}
+                  placeholder="Enter new amount"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-desc">Description (optional)</Label>
+                <Input
+                  id="edit-desc"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Add a note"
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveEdit} disabled={!editAmount || isNaN(Number(editAmount)) || Number(editAmount) <= 0}>
+                Save & Re-process
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
