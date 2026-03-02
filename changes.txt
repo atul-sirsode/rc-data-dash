@@ -65,3 +65,15 @@ changes.txt
 src/components/AppFooter.tsx (new) - footer with Contact Us, License, and About sections
 src/components/AppLayout.tsx - added footer to main layout
 changes.txt
+
+=== Subscription Expiry Nav Blocking (2026-03-02) ===
+src/hooks/use-subscription-status.ts (new) - hook to check if subscription expired
+src/components/AppSidebar.tsx - disable nav items & show toast when subscription expired
+changes.txt
+
+=== FastTag Reports Date Picker Fix (2026-03-02) ===
+src/pages/FastTagReports.tsx - reverted to two separate date pickers with cross-validation
+
+=== Home Page Scroll Fix (2026-03-02) ===
+src/App.css - removed default padding/max-width from #root causing unnecessary scroll
+changes.txt
