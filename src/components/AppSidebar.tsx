@@ -1,3 +1,4 @@
+import React from 'react';
 import { Home, Car, CreditCard, ChevronLeft, ChevronRight, Users, ShieldCheck, Upload, FileBarChart, Wallet } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
