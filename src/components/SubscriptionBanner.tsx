@@ -15,16 +15,16 @@ export function SubscriptionBanner() {
     subscriptionService.getSubscription(username).then(setSub);
   }, [username]);
 
-  if (!sub || dismissed) return null;
+  const daysLeft = sub ? subscriptionService.getDaysRemaining(sub) : 0;
+  const expired = sub ? subscriptionService.isExpired(sub) : false;
+  const warning = sub ? subscriptionService.shouldShowWarning(sub) : false;
 
-  const daysLeft = subscriptionService.getDaysRemaining(sub);
-  const expired = subscriptionService.isExpired(sub);
-  const warning = subscriptionService.shouldShowWarning(sub);
-
-  if (!expired && !warning) return null;
+  const shouldShow = sub && !dismissed && (expired || warning);
 
   return (
-    <Alert variant="destructive" className="mb-4 relative">
+    <div className={shouldShow ? 'mb-4' : 'mb-0'} style={{ minHeight: shouldShow ? undefined : 0, overflow: 'hidden' }}>
+      {shouldShow && (
+    <Alert variant="destructive" className="relative">
       <AlertTriangle className="h-4 w-4" />
       <AlertTitle>{expired ? 'Subscription Expired' : 'Subscription Expiring Soon'}</AlertTitle>
       <AlertDescription>
