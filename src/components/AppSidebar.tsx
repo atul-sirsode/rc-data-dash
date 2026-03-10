@@ -25,7 +25,7 @@ interface AppSidebarProps {
   onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }: AppSidebarProps) {
+export const AppSidebar = React.memo(function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }: AppSidebarProps) {
   const { username } = useAuth();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
