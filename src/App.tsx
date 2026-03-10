@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,20 +6,31 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Home from "./pages/Home";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import FastTag from "./pages/FastTag";
-import FastTagHistory from "./pages/FastTagHistory";
-import FastTagUpload from "./pages/FastTagUpload";
-import FastTagReports from "./pages/FastTagReports";
-import ManageSubscription from "./pages/ManageSubscription";
-import Settings from "./pages/Settings";
-import UserMaster from "./pages/UserMaster";
-import AccessMaster from "./pages/AccessMaster";
-import NotFound from "./pages/NotFound";
+import { PageLoader } from "@/components/PageLoader";
 
-const queryClient = new QueryClient();
+// Lazy-loaded routes
+const Home = React.lazy(() => import('./pages/Home'));
+const Index = React.lazy(() => import('./pages/Index'));
+const Login = React.lazy(() => import('./pages/Login'));
+const FastTag = React.lazy(() => import('./pages/FastTag'));
+const FastTagHistory = React.lazy(() => import('./pages/FastTagHistory'));
+const FastTagUpload = React.lazy(() => import('./pages/FastTagUpload'));
+const FastTagReports = React.lazy(() => import('./pages/FastTagReports'));
+const ManageSubscription = React.lazy(() => import('./pages/ManageSubscription'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const UserMaster = React.lazy(() => import('./pages/UserMaster'));
+const AccessMaster = React.lazy(() => import('./pages/AccessMaster'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -59,7 +71,9 @@ const App = () => (
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <AppRoutes />
+            <Suspense fallback={<PageLoader />}>
+              <AppRoutes />
+            </Suspense>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

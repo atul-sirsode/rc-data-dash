@@ -1,3 +1,4 @@
+import React from 'react';
 import { Home, Car, CreditCard, ChevronLeft, ChevronRight, Users, ShieldCheck, Upload, FileBarChart, Wallet } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +26,7 @@ interface AppSidebarProps {
   onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }: AppSidebarProps) {
+export const AppSidebar = React.memo(function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }: AppSidebarProps) {
   const { username } = useAuth();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -158,4 +159,4 @@ export function AppSidebar({ onNavigate, collapsed = false, onCollapsedChange }:
       </div>
     </aside>
   );
-}
+});
