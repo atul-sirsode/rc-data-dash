@@ -61,4 +61,4 @@ export const AppFooter = React.memo(function AppFooter() {
       </div>
     </footer>
   );
-}
+});

@@ -159,4 +159,4 @@ export const AppSidebar = React.memo(function AppSidebar({ onNavigate, collapsed
       </div>
     </aside>
   );
-}
+});
